@@ -1,26 +1,29 @@
-% Set up EV3 brick connection and Assign Motors/Sensors
+% Set up EV3 brick connection and Assign Motors/Sensor
 myev3 = legoev3('usb');
 
 motor_l = motor(myev3,'D');
 motor_r = motor(myev3,'A');
 ir_sensor = irSensor(myev3);
 
-
+% Set Initial variables
 desired_gap = 40;
 time_now = clock;
 
 proximity = readProximity(ir_sensor);
 error = proximity - desired_gap;
 
-error_values = [double(error)];
-time_values = [0];
-speed_values = [0];
-
 motor_r.Speed = 0;
 motor_l.Speed = 0;
 start(motor_r);
 start(motor_l);
 
+
+error_values = [double(error)];
+time_values = [0];
+speed_values = [0];
+
+
+% PID controller coefficients
 Kp = 2.0;
 Ki = 0.0;
 Kd = 0.5;
@@ -43,6 +46,7 @@ while error ~= 0
         
     Speed = P + I + D;
     
+    % Setting minimum and maximum speed limits
     if Speed > 100.0 
         Speed = 100.0;
     elseif Speed < -100.0
@@ -52,19 +56,19 @@ while error ~= 0
     motor_r.Speed = -Speed;
     motor_l.Speed = -Speed;
     
-    
+    %Getting current values for time and error
     new_time = clock;
     proximity = readProximity(ir_sensor);
     error = proximity - desired_gap;
     time = (new_time - time_now);
     time_diff = 60*time(5) + time(6);
     
-
     time_values(end+1) = time_diff;
     error_values(end+1) = double(error);
     speed_values(end+1) = Speed;
     
     
+    % Real time plot of the error
     plot(time_values,error_values);
     xlim([0,time_values(end)]);
     ylim([-100,100]);
