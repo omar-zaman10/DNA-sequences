@@ -1,2 +1,0 @@
-# LED-Skateboard
-# Skateboard-LEDs
