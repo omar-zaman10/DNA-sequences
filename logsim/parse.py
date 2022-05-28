@@ -42,6 +42,10 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
 
+        self.devices_list()
+        self.connections_list()
+        self.monitor()
+
         return True
 
     def devices_list(self):
@@ -62,7 +66,7 @@ class Parser:
         else:
             self.error()
 
-    def connection_list(self):
+    def connections_list(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.CONNECTIONS:
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.COLON:
