@@ -71,6 +71,7 @@ class Scanner:
         self.current_character = ""
         self.character_number = 1
 
+
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
         
@@ -106,10 +107,28 @@ class Scanner:
                 #print(self.current_character) #prints comment i.e. characters after '#' until end of line
                 symbol.type = self.HASHTAG
                 self.nextCharacter()
-
-        #identify keywords
-        #identify names
+        
         #identify numbers
+        elif self.current_character.isdigit() == True:
+            
+            self.num = self.getNumber()
+            symbol.type = self.NUMBER
+            self.nextCharacter()
+
+        #identify alphanumerical sequences as either keywords if in keywords list, or as a name otherwise
+        elif self.current_character.isalpha() == True:
+            
+            self.string = self.getString()
+
+            if self.string in self.keywords_list:
+                symbol.type = self.KEYWORD
+            else:
+                symbol.type = self.NAME
+            
+            self.nextCharacter()
+
+        return symbol
+
 
     def nextCharacter(self):
         """Looks at the next character and increases the character and line counters
@@ -119,3 +138,30 @@ class Scanner:
         self.character_number += 1 
         
         return self.current_character
+
+    
+    def getString(self):
+        """Return the next keyword or name string in the input file"""
+
+        string = str(self.current_character)
+
+        while True:
+            self.current_character = self.nextCharacter()
+            if self.current_character.isalnum():
+                string = string + str(self.current_character)
+                string = str(string)
+            else:
+                return string
+    
+    
+    def getNumber(self):
+        """Returns the next number in the input file"""
+
+        number = self.current_character
+        
+        while self.current_character.isdigit():
+            self.current_character = self.nextCharacter()
+            if self.current_character.isdigit():
+                number = str(number) + str(self.current_character)
+            else:
+                return number
