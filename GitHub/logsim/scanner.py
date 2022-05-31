@@ -8,7 +8,8 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
-
+import names
+import numpy as np
 
 class Symbol:
 
@@ -52,5 +53,20 @@ class Scanner:
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
 
+        self.file = open(path, 'r')
+        
+        self.names = names
+        
+        self.symbol_type_list = [self.SEMICOLON, self.COLON, self.DOT, self.COMMA, self.HASHTAG, 
+                                self.KEYWORD, self.NAME, self.NUMBER, self.EOF] = range(9)
+        
+        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END" "to", "is", "SWITCH with state", "and", 
+                            "CLOCK with", "cycle period", "AND with", "NAND with", "OR with", "NOR with", "DTYPE", 
+                            "XOR", "input", "inputs", "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
+        
+        [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID, self.TO, self.IS, self.SWITCH_ID, 
+        self.AND, self.CLOCK_ID, self.CYCLE_PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID, self.NOR_ID, self.DTYPE_ID, 
+        self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+    
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
