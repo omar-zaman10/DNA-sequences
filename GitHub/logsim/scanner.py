@@ -53,7 +53,7 @@ class Scanner:
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
 
-        self.file = open(path, 'r')
+        self.input_file = open(path, 'r')
         
         self.names = names
         
@@ -67,6 +67,55 @@ class Scanner:
         [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID, self.TO, self.IS, self.SWITCH_ID, 
         self.AND, self.CLOCK_ID, self.CYCLE_PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID, self.NOR_ID, self.DTYPE_ID, 
         self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
-    
+
+        self.current_character = ""
+        self.character_number = 1
+
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
+        
+        symbol = Symbol() #create instance of the symbol class
+
+        #identify punctuation (semicolon, colon, full stop, comma)
+        if self.current_character == ';':
+            symbol.type = self.SEMICOLON
+            self.nextCharacter()
+        
+        elif self.current_character == ':':
+            symbol.type = self.COLON
+            self.nextCharacter()
+
+        elif self.current_character == '.':
+            symbol.type = self.DOT
+            self.nextCharacter()
+
+        elif self.current_character == ",":
+            symbol.type = self.COMMA
+            self.nextCharacter()
+
+        #identify end of file
+        elif self.current_character == "":
+            symbol.type = self.EOF
+        
+        #identify comments
+        elif self.current_character == "#":
+            symbol.type = self.HASHTAG
+            self.nextCharacter()
+            #print('#')
+            while self.current_character != '\n':
+                #print(self.current_character) #prints comment i.e. characters after '#' until end of line
+                symbol.type = self.HASHTAG
+                self.nextCharacter()
+
+        #identify keywords
+        #identify names
+        #identify numbers
+
+    def nextCharacter(self):
+        """Looks at the next character and increases the character and line counters
+        as necessary"""
+
+        self.current_character = self.input_file.read(self.character_number)
+        self.character_number += 1 
+        
+        return self.current_character
