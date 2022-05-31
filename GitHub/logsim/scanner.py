@@ -26,8 +26,11 @@ class Symbol:
 
     def __init__(self):
         """Initialise symbol properties."""
+
         self.type = None
         self.id = None
+        self.position = None
+        self.line = None
 
 
 class Scanner:
@@ -53,80 +56,116 @@ class Scanner:
     def __init__(self, path, names):
         """Open specified file and initialise reserved words and IDs."""
 
-        self.input_file = open(path, 'r')
+        try:
+            self.input_file = open(path, 'r')
+        except:
+            raise FileNotFoundError("Error: File doesn't exist in current directory")
+            sys.exit()
         
+
         self.names = names
         
-        self.symbol_type_list = [self.SEMICOLON, self.COLON, self.DOT, self.COMMA, self.HASHTAG, 
-                                self.KEYWORD, self.NAME, self.NUMBER, self.EOF] = range(9)
+        self.symbol_type_list = [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA, self.HASHTAG, 
+                                self.NEWLINE, self.KEYWORD, self.NAME, self.INTEGER, self.INT16, self.EOF] = range(11)
         
-        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END" "to", "is", "SWITCH with state", "and", 
-                            "CLOCK with", "cycle period", "AND with", "NAND with", "OR with", "NOR with", "DTYPE", 
+        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END" "to", "is", "SWITCH", "with", 
+                            "state", "and", "CLOCK", "cycle", "period", "AND", "NAND", "OR", "NOR", "DTYPE", 
                             "XOR", "input", "inputs", "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
         
         [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID, self.TO, self.IS, self.SWITCH_ID, 
-        self.AND, self.CLOCK_ID, self.CYCLE_PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID, self.NOR_ID, self.DTYPE_ID, 
-        self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+        self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID, 
+        self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR, 
+        self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+
 
         self.current_character = ""
-        self.character_number = 1
+        self.character_number = 0
+        self.line_number = 0
+        self.symbol_number = 0
 
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol."""
         
         symbol = Symbol() #create instance of the symbol class
+        self.skipSpace() #ignore whitespace in the
 
         #identify punctuation (semicolon, colon, full stop, comma)
         if self.current_character == ';':
             symbol.type = self.SEMICOLON
             self.nextCharacter()
+            #print(";")
         
         elif self.current_character == ':':
             symbol.type = self.COLON
             self.nextCharacter()
+            #print(":")
 
         elif self.current_character == '.':
-            symbol.type = self.DOT
+            symbol.type = self.FULLSTOP
             self.nextCharacter()
+            #print(".")
 
         elif self.current_character == ",":
             symbol.type = self.COMMA
             self.nextCharacter()
+            #print(",")
+        
+        #identify new line
+        elif self.current_character == '\n':
+            symbol.type = self.NEWLINE
+            self.nextCharacter()
+
+        #identify comments
+        elif self.current_character == "#":
+            symbol.type = self.HASHTAG
+            #print("#")
+            self.nextCharacter()
+            while self.current_character != '\n':
+                #print(self.current_character) #prints comment i.e. characters after '#' until end of line
+                symbol.type = self.HASHTAG
+                self.nextCharacter()
 
         #identify end of file
         elif self.current_character == "":
             symbol.type = self.EOF
         
-        #identify comments
-        elif self.current_character == "#":
-            symbol.type = self.HASHTAG
-            self.nextCharacter()
-            #print('#')
-            while self.current_character != '\n':
-                #print(self.current_character) #prints comment i.e. characters after '#' until end of line
-                symbol.type = self.HASHTAG
-                self.nextCharacter()
-        
-        #identify numbers
+        #identify integers, in particular 1-16 for gate input allocation
         elif self.current_character.isdigit() == True:
+            symbol.id = self.getNumber()
+   
+            if type(symbol.id) == int:
+                symbol.type = self.INTEGER
+                if 1 <= symbol.id <= 16:
+                    symbol.type = self.INT16
+            elif type(symbol.id) == float:
+                raise SyntaxError("Invalid number: only integers allowed")
             
-            self.num = self.getNumber()
-            symbol.type = self.NUMBER
             self.nextCharacter()
+            #print(symbol.id)
 
         #identify alphanumerical sequences as either keywords if in keywords list, or as a name otherwise
         elif self.current_character.isalpha() == True:
-            
             self.string = self.getString()
 
             if self.string in self.keywords_list:
                 symbol.type = self.KEYWORD
+                symbol.id = self.names.query(self.string)
             else:
                 symbol.type = self.NAME
+                symbol.id = self.names.query(self.string)
             
             self.nextCharacter()
+            #print(self.string)
+        
+        else:
+            raise SyntaxError("Error: invalid character")
 
+
+        symbol.position = self.character_number
+        symbol.line = self.line_number
+        self.symbol_number += 1
+        
         return symbol
 
 
@@ -134,22 +173,32 @@ class Scanner:
         """Looks at the next character and increases the character and line counters
         as necessary"""
 
-        self.current_character = self.input_file.read(self.character_number)
         self.character_number += 1 
+        self.current_character = self.input_file.read(self.character_number)[-1]
+        
+        if self.current_character == '\n':
+            self.character_number = 0
+            self.line_number += 1
         
         return self.current_character
 
-    
+
+    def skipSpace(self):
+        """Skip any whitespace to return the next non-space character"""
+
+        while self.current_character.isspace():
+            self.current_character = self.nextCharacter()
+
+
     def getString(self):
         """Return the next keyword or name string in the input file"""
 
         string = str(self.current_character)
 
-        while True:
+        while self.current_character.isalnum():
             self.current_character = self.nextCharacter()
-            if self.current_character.isalnum():
-                string = string + str(self.current_character)
-                string = str(string)
+            if self.current_character.isalnum() == True:
+                string = str(string) + str(self.current_character)
             else:
                 return string
     
@@ -161,7 +210,7 @@ class Scanner:
         
         while self.current_character.isdigit():
             self.current_character = self.nextCharacter()
-            if self.current_character.isdigit():
+            if self.current_character.isdigit() == True:
                 number = str(number) + str(self.current_character)
             else:
                 return number
