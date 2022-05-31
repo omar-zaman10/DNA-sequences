@@ -73,22 +73,23 @@ class Scanner:
                             "XOR", "input", "inputs", "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
         
         [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID, self.TO, self.IS, self.SWITCH_ID, 
-        self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID, 
-        self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR, 
-        self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+        self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID,
+        self.OR_ID, self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK,
+        self.SET, self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
 
 
         self.current_character = ""
         self.character_number = 0
         self.line_number = 0
         self.symbol_number = 0
+        self.scanner_error_count = 0
 
 
     def get_symbol(self):
-        """Translate the next sequence of characters into a symbol."""
+        """Translate the next sequence of characters into a symbol for the parser"""
         
         symbol = Symbol() #create instance of the symbol class
-        self.skipSpace() #ignore whitespace in the
+        self.skipSpace() #ignore whitespace
 
         #identify punctuation (semicolon, colon, full stop, comma)
         if self.current_character == ';':
@@ -139,6 +140,7 @@ class Scanner:
                 if 1 <= symbol.id <= 16:
                     symbol.type = self.INT16
             elif type(symbol.id) == float:
+                self.reportErrorLocation()
                 raise SyntaxError("Invalid number: only integers allowed")
             
             self.nextCharacter()
@@ -159,6 +161,7 @@ class Scanner:
             #print(self.string)
         
         else:
+            self.reportErrorLocation()
             raise SyntaxError("Error: invalid character")
 
 
@@ -214,3 +217,22 @@ class Scanner:
                 number = str(number) + str(self.current_character)
             else:
                 return number
+    
+    def reportErrorLocation(self):
+        """For basic error handling: To be called by the parser and in some cases 
+        within the scanner in case of an error. Returns the erroneous line and 
+        a pointer in the following line pointing to the erroneous character"""
+
+        pointer = ""
+
+        for i in range(self.character_number - 1):
+            pointer += " "
+        
+        pointer += "^"
+        self.scanner_error_count += 1
+
+        #Returns the erroneous line to the console, with a pointer in the next line to show poisiton of error
+        #print(self.input_file.read()[self.line_number], end = '\n')
+        #print(pointer)
+
+        return self.input_file.read()[self.line_number], pointer
