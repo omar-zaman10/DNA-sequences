@@ -10,7 +10,7 @@ Symbol - encapsulates a symbol and stores its properties.
 """
 
 import names
-#import dataclasses
+import dataclasses
 import pdb
 import sys
 import parse
