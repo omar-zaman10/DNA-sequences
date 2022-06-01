@@ -91,8 +91,37 @@ class Scanner:
         symbol = Symbol() #create instance of the symbol class
         self.skip_spaces() #current character is now now whitespace
 
+        #identify alphanumerical sequences as either keywords if in keywords list, or as a name otherwise
+        if self.current_character.isalpha() == True:
+            string = self.get_name()
+
+            if string in self.keywords_list:
+                symbol.type = self.KEYWORD
+                [symbol.id] = self.names.lookup([string])
+            else:
+                symbol.type = self.NAME
+                [symbol.id] = self.names.lookup([string])
+            
+            #self.advance()
+            #print(self.string)
+
+        #identify integers, in particular 1-16 for gate input allocation
+        elif self.current_character.isdigit() == True:
+            symbol.id = self.get_number()
+   
+            if type(symbol.id) == int:
+                symbol.type = self.INTEGER
+                if 1 <= symbol.id <= 16:
+                    symbol.type = self.INT16
+            elif type(symbol.id) == float:
+                self.reportErrorLocation()
+                raise SyntaxError("Invalid number: only integers allowed")
+            
+            #self.advance()
+            #print(symbol.id)
+
         #identify punctuation (semicolon, colon, full stop, comma)
-        if self.current_character == ';':
+        elif self.current_character == ';':
             symbol.type = self.SEMICOLON
             self.advance()
             #print(";")
@@ -130,35 +159,6 @@ class Scanner:
         #identify end of file
         elif self.current_character == "":
             symbol.type = self.EOF
-        
-        #identify integers, in particular 1-16 for gate input allocation
-        elif self.current_character.isdigit() == True:
-            symbol.id = self.get_number()
-   
-            if type(symbol.id) == int:
-                symbol.type = self.INTEGER
-                if 1 <= symbol.id <= 16:
-                    symbol.type = self.INT16
-            elif type(symbol.id) == float:
-                self.reportErrorLocation()
-                raise SyntaxError("Invalid number: only integers allowed")
-            
-            self.advance()
-            #print(symbol.id)
-
-        #identify alphanumerical sequences as either keywords if in keywords list, or as a name otherwise
-        elif self.current_character.isalpha() == True:
-            self.string = self.get_name()
-
-            if self.string in self.keywords_list:
-                symbol.type = self.KEYWORD
-                symbol.id = self.names.query(self.string)
-            else:
-                symbol.type = self.NAME
-                symbol.id = self.names.query(self.string)
-            
-            self.advance()
-            #print(self.string)
         
         else:
             self.reportErrorLocation()
@@ -217,7 +217,7 @@ class Scanner:
             if self.current_character.isdigit() == True:
                 number = str(number) + str(self.current_character)
             else:
-                return number
+                return int(number)
     
     def reportErrorLocation(self):
         """For basic error handling: To be called by the parser and in some cases 
