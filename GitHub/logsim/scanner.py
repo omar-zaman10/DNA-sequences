@@ -89,43 +89,43 @@ class Scanner:
         """Translate the next sequence of characters into a symbol for the parser"""
         
         symbol = Symbol() #create instance of the symbol class
-        self.skipSpace() #ignore whitespace
+        self.skip_spaces() #current character is now now whitespace
 
         #identify punctuation (semicolon, colon, full stop, comma)
         if self.current_character == ';':
             symbol.type = self.SEMICOLON
-            self.nextCharacter()
+            self.advance()
             #print(";")
         
         elif self.current_character == ':':
             symbol.type = self.COLON
-            self.nextCharacter()
+            self.advance()
             #print(":")
 
         elif self.current_character == '.':
             symbol.type = self.FULLSTOP
-            self.nextCharacter()
+            self.advance()
             #print(".")
 
         elif self.current_character == ",":
             symbol.type = self.COMMA
-            self.nextCharacter()
+            self.advance()
             #print(",")
         
         #identify new line
         elif self.current_character == '\n':
             symbol.type = self.NEWLINE
-            self.nextCharacter()
+            self.advance()
 
         #identify comments
         elif self.current_character == "#":
             symbol.type = self.HASHTAG
             #print("#")
-            self.nextCharacter()
+            self.advance()
             while self.current_character != '\n':
                 #print(self.current_character) #prints comment i.e. characters after '#' until end of line
                 symbol.type = self.HASHTAG
-                self.nextCharacter()
+                self.advance()
 
         #identify end of file
         elif self.current_character == "":
@@ -133,7 +133,7 @@ class Scanner:
         
         #identify integers, in particular 1-16 for gate input allocation
         elif self.current_character.isdigit() == True:
-            symbol.id = self.getNumber()
+            symbol.id = self.get_number()
    
             if type(symbol.id) == int:
                 symbol.type = self.INTEGER
@@ -143,12 +143,12 @@ class Scanner:
                 self.reportErrorLocation()
                 raise SyntaxError("Invalid number: only integers allowed")
             
-            self.nextCharacter()
+            self.advance()
             #print(symbol.id)
 
         #identify alphanumerical sequences as either keywords if in keywords list, or as a name otherwise
         elif self.current_character.isalpha() == True:
-            self.string = self.getString()
+            self.string = self.get_name()
 
             if self.string in self.keywords_list:
                 symbol.type = self.KEYWORD
@@ -157,11 +157,12 @@ class Scanner:
                 symbol.type = self.NAME
                 symbol.id = self.names.query(self.string)
             
-            self.nextCharacter()
+            self.advance()
             #print(self.string)
         
         else:
             self.reportErrorLocation()
+            self.advance()
             raise SyntaxError("Error: invalid character")
 
 
@@ -172,7 +173,7 @@ class Scanner:
         return symbol
 
 
-    def nextCharacter(self):
+    def advance(self):
         """Looks at the next character and increases the character and line counters
         as necessary"""
 
@@ -186,33 +187,33 @@ class Scanner:
         return self.current_character
 
 
-    def skipSpace(self):
+    def skip_spaces(self):
         """Skip any whitespace to return the next non-space character"""
 
         while self.current_character.isspace():
-            self.current_character = self.nextCharacter()
+            self.current_character = self.advance()
 
 
-    def getString(self):
+    def get_name(self):
         """Return the next keyword or name string in the input file"""
 
         string = str(self.current_character)
 
         while self.current_character.isalnum():
-            self.current_character = self.nextCharacter()
+            self.current_character = self.advance()
             if self.current_character.isalnum() == True:
                 string = str(string) + str(self.current_character)
             else:
                 return string
     
     
-    def getNumber(self):
+    def get_number(self):
         """Returns the next number in the input file"""
 
         number = self.current_character
         
         while self.current_character.isdigit():
-            self.current_character = self.nextCharacter()
+            self.current_character = self.advance()
             if self.current_character.isdigit() == True:
                 number = str(number) + str(self.current_character)
             else:
