@@ -295,3 +295,14 @@ class Gui(wx.Frame):
         text_box_value = self.text_box.GetValue()
         text = "".join(["New text box value: ", text_box_value])
         self.canvas.render(text)
+
+
+
+app = wx.App()
+
+path = None 
+
+
+gui = Gui("Demo",path,Names,Devices,Network,Monitors)
+gui.Show(True)
+app.MainLoop()
