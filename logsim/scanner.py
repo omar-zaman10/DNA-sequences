@@ -67,9 +67,9 @@ class Scanner:
         self.symbol_type_list = [self.PUNCTUATION, self.KEYWORD, self.NAME, self.INTEGER, self.INT16, self.EOF] \
             = range(6)
 
-        self.punctuation_list = [";", ":", ".", ",", "#", "\n"]
+        self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
-        [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA, self.HASHTAG, self.NEWLINE] = \
+        [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA, self.HASHTAG, self.NEWLINE, self.EOF_ID] = \
             self.names.lookup(self.punctuation_list)
 
         self.numbers_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
@@ -143,6 +143,7 @@ class Scanner:
         # check for end of line
         elif self.current_character == "":
             symbol.type = self.EOF
+            symbol.id = self.EOF_ID
             self.string = ""
 
         # check for integers, in particular 1-16 for gate input allocation

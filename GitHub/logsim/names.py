@@ -59,10 +59,9 @@ class Names:
 
         try:
             return self.name_list.index(name_string)
-        
+
         except:
             return None
-            
 
     def lookup(self, name_string_list):
         """Return a list of name IDs for each name string in name_string_list.
@@ -72,18 +71,13 @@ class Names:
 
         id_list = []
 
-
         for name_string in name_string_list:
-
-
             if name_string not in self.name_list:
                 self.name_list.append(name_string)
 
             id_list.append(self.name_list.index(name_string))
-        
+
         return id_list
-
-
 
     def get_name_string(self, name_id):
         """Return the corresponding name string for name_id.
@@ -91,11 +85,10 @@ class Names:
         If the name_id is not an index in the names list, return None.
         """
 
-        if name_id < 0:
+        if name_id < 0 and type(name_id) != int:
             raise ValueError
 
-        try:
+        if name_id < len(self.name_list):
             return self.name_list[name_id]
-
-        except IndexError:
+        else:
             return None
