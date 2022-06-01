@@ -207,10 +207,10 @@ class Scanner:
             self.errorPosition()
             raise SyntaxError("Error: invalid symbol")
 
-        try:
-            print(self.names.get_name_string(symbol.id))
-        except:
-            print(self.string)
+        #try:
+            #print(self.names.get_name_string(symbol.id))
+        #except:
+            #print(self.string)
 
         self.symbol_number += 1
 

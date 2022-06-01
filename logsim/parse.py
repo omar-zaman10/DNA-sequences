@@ -12,12 +12,12 @@ import sys
 import pdb
 
 
-#class Error:
-    #def __init__(self):
-        #"""Initialise symbol properties."""
+# class Error:
+# def __init__(self):
+# """Initialise symbol properties."""
 
-        #self.type = None
-        #self.id = None
+# self.type = None
+# self.id = None
 
 
 class Parser:
@@ -51,18 +51,18 @@ class Parser:
         self.monitors = monitors
         self.scanner = scanner
 
-        #self.error_types = ["NO_END_DEVICES", "NO_COLON", "NO_DEVICES", "NO_END_CONNECTIONS", "NO_CONNECTIONS",
-                            #"NO_SEMICOLON", "NO_MONITOR", "NO_IS", "NO_GATE_TYPE", "NO_GATE", "NO_SWITCH",
-                            #"SWITCH_INPUT", "CLOCK", "NO_INTEGER", "NO_CYCLE", "NO_AND", "NO_INPUT_NO", "NO_INPUT",
-                            #"NO_NAND", "NO_OR", "NO_NOR", "NO_DTYPE", "NO_XOR", "NO_CONNECTION", "NO_INPUT_TYPE",
-                            #"NO_FULLSTOP", "NO_OUTPUT_TYPE", "NO_CHARACTER", "NO_CHARACTER_DIGIT", "NO_HASHTAG",
-                            #"NO_NEWLINE"]
-        #[self.NO_END_DEVICES, self.NO_COLON, self.NO_DEVICES, self.NO_END_CONNECTIONS, self.NO_CONNECTIONS,
-         #self.NO_SEMICOLON, self.NO_MONITOR, self.NO_IS, self.NO_GATE_TYPE, self.NO_GATE, self.NO_SWITCH,
-         #self.SWITCH_INPUT, self.CLOCK, self.NO_INTEGER, self.NO_CYCLE, self.NO_AND, self.NO_INPUT_NO, self.NO_INPUT,
-         #self.NO_NAND, self.NO_OR, self.NO_NOR, self.NO_DTYPE, self.NO_XOR, self.NO_CONNECTION, self.NO_INPUT_TYPE,
-         #self.NO_FULLSTOP, self.NO_OUTPUT_TYPE, self.NO_CHARACTER, self.NO_CHARACTER_DIGIT, self.NO_HASHTAG,
-         #self.NO_NEWLINE] = self.names.lookup(self.error_types)
+        # self.error_types = ["NO_END_DEVICES", "NO_COLON", "NO_DEVICES", "NO_END_CONNECTIONS", "NO_CONNECTIONS",
+        # "NO_SEMICOLON", "NO_MONITOR", "NO_IS", "NO_GATE_TYPE", "NO_GATE", "NO_SWITCH",
+        # "SWITCH_INPUT", "CLOCK", "NO_INTEGER", "NO_CYCLE", "NO_AND", "NO_INPUT_NO", "NO_INPUT",
+        # "NO_NAND", "NO_OR", "NO_NOR", "NO_DTYPE", "NO_XOR", "NO_CONNECTION", "NO_INPUT_TYPE",
+        # "NO_FULLSTOP", "NO_OUTPUT_TYPE", "NO_CHARACTER", "NO_CHARACTER_DIGIT", "NO_HASHTAG",
+        # "NO_NEWLINE"]
+        # [self.NO_END_DEVICES, self.NO_COLON, self.NO_DEVICES, self.NO_END_CONNECTIONS, self.NO_CONNECTIONS,
+        # self.NO_SEMICOLON, self.NO_MONITOR, self.NO_IS, self.NO_GATE_TYPE, self.NO_GATE, self.NO_SWITCH,
+        # self.SWITCH_INPUT, self.CLOCK, self.NO_INTEGER, self.NO_CYCLE, self.NO_AND, self.NO_INPUT_NO, self.NO_INPUT,
+        # self.NO_NAND, self.NO_OR, self.NO_NOR, self.NO_DTYPE, self.NO_XOR, self.NO_CONNECTION, self.NO_INPUT_TYPE,
+        # self.NO_FULLSTOP, self.NO_OUTPUT_TYPE, self.NO_CHARACTER, self.NO_CHARACTER_DIGIT, self.NO_HASHTAG,
+        # self.NO_NEWLINE] = self.names.lookup(self.error_types)
 
         self.error_count = 0
         self.symbol = self.scanner.get_symbol()
@@ -86,20 +86,18 @@ class Parser:
 
     def error(self, error_type, stopping_symbol):
         self.error_count += 1
-        #error = Error()
-        print(error_type)
 
-        #if self.error_type.isalpha():
-            #self.string = self.getName()
+        # if self.error_type.isalpha():
+        # self.string = self.getName()
 
-            #if self.string in self.error_types:
-                #error.id = self.names.query(self.string)
-            #else:
-                #print("Error message failed")
-                #sys.exit()
+        # if self.string in self.error_types:
+        # error.id = self.names.query(self.string)
+        # else:
+        # print("Error message failed")
+        # sys.exit()
 
-        #current_line, pointer = self.scanner.errorPosition()
-        #print(current_line, "\n", pointer)
+        # current_line, pointer = self.scanner.errorPosition()
+        # print(current_line, "\n", pointer)
 
         if error_type == "NO_END_DEVICES":
             print("Error: Expected a closing devices statement")
@@ -164,9 +162,27 @@ class Parser:
         elif error_type == "NO_NEWLINE":
             print("Error: New line expected")
 
-        while self.symbol.type != stopping_symbol and self.symbol.type != self.scanner.EOF:
-            #pdb.set_trace()
+        stopping_symbols = []
+        go_to_next = []
+
+        for stop in stopping_symbol:
+            stopping_symbols.append(stop[0])
+            go_to_next.append(stop[1])
+
+        if self.symbol.id in stopping_symbols:
+            in_stopping_symbol = True
+        else:
+            in_stopping_symbol = False
+
+        while not in_stopping_symbol and self.symbol.type != self.scanner.EOF:
             self.symbol = self.scanner.get_symbol()
+            if self.symbol.id in stopping_symbols:
+                symbol_index = stopping_symbols.index(self.symbol.id)
+                print("Returned to parsing")
+                if go_to_next[symbol_index]:
+                    self.symbol = self.scanner.get_symbol()
+
+                in_stopping_symbol = True
 
     def devices_list(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.DEVICES_ID:
@@ -180,11 +196,14 @@ class Parser:
                 if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.DEVICES_ID:
                     self.symbol = self.scanner.get_symbol()
                 else:
-                    self.error("NO_END_DEVICES", self.scanner.KEYWORD)
+                    self.error("NO_END_DEVICES",
+                               [(self.scanner.CONNECTIONS_ID, False), (self.scanner.MONITOR_ID, False)])
             else:
-                self.error("NO_COLON", self.scanner.NAME)
+                self.error("NO_COLON", [(self.scanner.DEVICES_ID, True), (self.scanner.CONNECTIONS_ID, False),
+                                        (self.scanner.MONITOR_ID, False)])
         else:
-            self.error("NO_DEVICES", self.scanner.KEYWORD)
+            self.error("NO_DEVICES", [(self.scanner.DEVICES_ID, True), (self.scanner.CONNECTIONS_ID, False),
+                                      (self.scanner.MONITOR_ID, False)])
 
     def connections_list(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.CONNECTIONS_ID:
@@ -198,11 +217,11 @@ class Parser:
                 if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.CONNECTIONS_ID:
                     self.symbol = self.scanner.get_symbol()
                 else:
-                    self.error("NO_END_DEVICES", self.scanner.KEYWORD)
+                    self.error("NO_END_CONNECTIONS", [(self.scanner.MONITOR_ID, False)])
             else:
-                self.error("NO_COLON", self.scanner.SEMICOLON)
+                self.error("NO_COLON", [(self.scanner.MONITOR_ID, False), (self.scanner.CONNECTIONS_ID, True)])
         else:
-            self.error("NO_CONNECTIONS", self.scanner.SEMICOLON)
+            self.error("NO_CONNECTIONS", [(self.scanner.MONITOR_ID, False)])
 
     def monitor(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.MONITOR_ID:
@@ -213,13 +232,11 @@ class Parser:
                 self.symbol = self.scanner.get_symbol()
                 self.output()
             if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.SEMICOLON:
-                #pdb.set_trace()
                 self.symbol = self.scanner.get_symbol()
-                #pdb.set_trace()
             else:
-                self.error("NO_SEMICOLON", self.scanner.SEMICOLON)
+                self.error("NO_SEMICOLON", [(self.scanner.SEMICOLON, True)])
         else:
-            self.error("NO_MONITOR", self.scanner.SEMICOLON)
+            self.error("NO_MONITOR", [(self.scanner.SEMICOLON, True)])
 
     def device(self):
         self.name()
@@ -229,15 +246,17 @@ class Parser:
             if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.SEMICOLON:
                 self.symbol = self.scanner.get_symbol()
             else:
-                self.error("NO_SEMICOLON", self.scanner.SEMICOLON)
+                self.error("NO_SEMICOLON", [(self.scanner.NAME, False), (self.scanner.SEMICOLON, True),
+                                            (self.scanner.DEVICES_ID, True), (self.scanner.CONNECTIONS_ID, False)])
         else:
-            self.error("NO_IS", self.scanner.SEMICOLON)
+            self.error("NO_IS", [(self.scanner.SEMICOLON, True), (self.scanner.DEVICES_ID, True)])
 
     def name(self):
         if self.symbol.type == self.scanner.NAME:
             self.symbol = self.scanner.get_symbol()
         else:
-            self.error("NO_CHARACTER", self.scanner.SEMICOLON)
+            self.error("NO_CHARACTER", [(self.scanner.SEMICOLON, True), (self.scanner.DEVICES_ID, True),
+                                        (self.scanner.CONNECTIONS_ID, True)])
 
     def gate(self):
         if self.symbol.type == self.scanner.KEYWORD:
@@ -258,9 +277,13 @@ class Parser:
             elif self.symbol.id == self.scanner.XOR_ID:
                 self.xor()
             else:
-                self.error("NO_GATE_TYPE", self.scanner.SEMICOLON)
+                self.error("NO_GATE_TYPE", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                            (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                            (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_GATE", self.scanner.SEMICOLON)
+            self.error("NO_GATE", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def switch(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.SWITCH_ID:
@@ -274,13 +297,22 @@ class Parser:
                         self.symbol = self.scanner.get_symbol()
 
                     else:
-                        self.error("SWITCH_INPUT", self.scanner.SEMICOLON)
+                        self.error("SWITCH_INPUT", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                                    (self.scanner.DEVICES_ID, False),
+                                                    (self.scanner.CONNECTIONS_ID, False),
+                                                    (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_SWITCH", self.scanner.SEMICOLON)
+                    self.error("NO_SWITCH", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                             (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                             (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_SWITCH", self.scanner.SEMICOLON)
+                self.error("NO_SWITCH", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                         (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                         (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_SWITCH", self.scanner.SEMICOLON)
+            self.error("NO_SWITCH", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                     (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                     (self.scanner.MONITOR, False)])
 
     def clock(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.CLOCK_ID:
@@ -294,15 +326,26 @@ class Parser:
                         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.PERIOD:
                             self.symbol = self.scanner.get_symbol()
                         else:
-                            self.error("NO_CYCLE", self.scanner.SEMICOLON)
+                            self.error("NO_CYCLE", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                                    (self.scanner.DEVICES_ID, False),
+                                                    (self.scanner.CONNECTIONS_ID, False),
+                                                    (self.scanner.MONITOR, False)])
                     else:
-                        self.error("NO_CYCLE", self.scanner.SEMICOLON)
+                        self.error("NO_CYCLE", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                                (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                                (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_INTEGER", self.scanner.SEMICOLON)
+                    self.error("NO_INTEGER", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                              (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                              (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_CLOCK", self.scanner.SEMICOLON)
+                self.error("NO_CLOCK", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                        (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                        (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_CLOCK", self.scanner.SEMICOLON)
+            self.error("NO_CLOCK", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                    (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                    (self.scanner.MONITOR, False)])
 
     def and_gate(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.AND_ID:
@@ -315,13 +358,21 @@ class Parser:
                                                                      self.symbol.id == self.scanner.INPUTS):
                         self.symbol = self.scanner.get_symbol()
                     else:
-                        self.error("NO_INPUT", self.scanner.SEMICOLON)
+                        self.error("NO_INPUT", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_INPUT_NO", self.scanner.SEMICOLON)
+                    self.error("NO_INPUT_NO", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_AND", self.scanner.SEMICOLON)
+                self.error("NO_AND", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_AND", self.scanner.SEMICOLON)
+            self.error("NO_AND", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def nand_gate(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.NAND_ID:
@@ -334,13 +385,21 @@ class Parser:
                                                                      self.symbol.id == self.scanner.INPUTS):
                         self.symbol = self.scanner.get_symbol()
                     else:
-                        self.error("NO_INPUT", self.scanner.SEMICOLON)
+                        self.error("NO_INPUT", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_INPUT_NO", self.scanner.SEMICOLON)
+                    self.error("NO_INPUT_NO", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_NAND", self.scanner.SEMICOLON)
+                self.error("NO_NAND", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_NAND", self.scanner.SEMICOLON)
+            self.error("NO_NAND", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def or_gate(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.OR_ID:
@@ -353,13 +412,21 @@ class Parser:
                                                                      self.symbol.id == self.scanner.INPUTS):
                         self.symbol = self.scanner.get_symbol()
                     else:
-                        self.error("NO_INPUT", self.scanner.SEMICOLON)
+                        self.error("NO_INPUT", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_INPUT_NO", self.scanner.SEMICOLON)
+                    self.error("NO_INPUT_NO", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_OR", self.scanner.SEMICOLON)
+                self.error("NO_OR", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_OR", self.scanner.SEMICOLON)
+            self.error("NO_OR", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def nor_gate(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.NOR_ID:
@@ -372,25 +439,37 @@ class Parser:
                                                                      self.symbol.id == self.scanner.INPUTS):
                         self.symbol = self.scanner.get_symbol()
                     else:
-                        self.error("NO_INPUT", self.scanner.SEMICOLON)
+                        self.error("NO_INPUT", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
                 else:
-                    self.error("NO_INPUT_NO", self.scanner.SEMICOLON)
+                    self.error("NO_INPUT_NO", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
             else:
-                self.error("NO_NOR", self.scanner.SEMICOLON)
+                self.error("NO_NOR", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
         else:
-            self.error("NO_NOR", self.scanner.SEMICOLON)
+            self.error("NO_NOR", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def dtype(self):
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.DTYPE_ID:
             self.symbol = self.scanner.get_symbol()
         else:
-            self.error("NO_DTYPE", self.scanner.SEMICOLON)
+            self.error("NO_DTYPE", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def xor(self):
         if self.symbol.type == self.scanner.KEYWORD and self.scanner.id == self.scanner.XOR_ID:
             self.symbol = self.scanner.get_symbol()
         else:
-            self.error("NO_XOR", self.scanner.SEMICOLON)
+            self.error("NO_XOR", [(self.scanner.SEMICOLON, True), (self.scanner.NAME, False),
+                                   (self.scanner.DEVICES_ID, False), (self.scanner.CONNECTIONS_ID, False),
+                                   (self.scanner.MONITOR, False)])
 
     def connection(self):
         self.output()
@@ -400,7 +479,8 @@ class Parser:
             if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.SEMICOLON:
                 self.symbol = self.scanner.get_symbol()
         else:
-            self.error("NO_CONNECTION", self.scanner.SEMICOLON)
+            self.error("NO_CONNECTION", [(self.scanner.SEMICOLON, True), (self.scanner.CONNECTIONS_ID, False),
+                                         (self.scanner.MONITOR_ID, False)])
 
     def input(self):
         self.name()
