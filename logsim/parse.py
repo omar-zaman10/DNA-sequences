@@ -66,6 +66,10 @@ class Parser:
 
         self.error_count = 0
         self.symbol = self.scanner.get_symbol()
+        self.device_list = []
+        self.input_list = []
+        self.output_list = []
+        self.name_string = ""
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -240,6 +244,8 @@ class Parser:
 
     def device(self):
         self.name()
+        device_id = self.device_id(self.name_string)
+        pdb.set_trace()
         if self.symbol.type == self.scanner.KEYWORD and self.symbol.id == self.scanner.IS:
             self.symbol = self.scanner.get_symbol()
             self.gate()
@@ -253,6 +259,7 @@ class Parser:
 
     def name(self):
         if self.symbol.type == self.scanner.NAME:
+            self.name_string = self.scanner.string
             self.symbol = self.scanner.get_symbol()
         else:
             self.error("NO_CHARACTER", [(self.scanner.SEMICOLON, True), (self.scanner.DEVICES_ID, True),
@@ -477,6 +484,7 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
             self.input()
             if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.SEMICOLON:
+
                 self.symbol = self.scanner.get_symbol()
         else:
             self.error("NO_CONNECTION", [(self.scanner.SEMICOLON, True), (self.scanner.CONNECTIONS_ID, False),
@@ -484,6 +492,8 @@ class Parser:
 
     def input(self):
         self.name()
+        input_id = self.input_id(self.name_string)
+        pdb.set_trace()
         if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.FULLSTOP:
             self.symbol = self.scanner.get_symbol()
             characters = [c for c in self.scanner.string]
@@ -503,6 +513,8 @@ class Parser:
 
     def output(self):
         self.name()
+        output_id = self.output_id(self.name_string)
+        pdb.set_trace()
         if self.symbol.type == self.scanner.PUNCTUATION and self.symbol.id == self.scanner.FULLSTOP:
             self.symbol = self.scanner.get_symbol()
             if self.symbol.type == self.scanner.KEYWORD:
@@ -560,3 +572,30 @@ class Parser:
                 self.error("NO_CHARACTER_DIGIT", self.scanner.NEWLINE)
         else:
             self.error("NO_HASHTAG", self.scanner.NEWLINE)
+
+    def device_id(self, name):
+
+        if name not in self.device_list:
+            self.device_list.append(name)
+
+        device_id = self.device_list.index(name)
+
+        return device_id
+
+    def input_id(self, name):
+
+        if name not in self.input_list:
+            self.input_list.append(name)
+
+        input_id = self.input_list.index(name)
+
+        return input_id
+
+    def output_id (self,name):
+
+        if name not in self.output_list:
+            self.output_list.append(name)
+
+        output_id = self.output_list.index(name)
+
+        return output_id
