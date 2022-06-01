@@ -1,3 +1,4 @@
+from unittest import TextTestResult
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
@@ -28,6 +29,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
+
 
     def init_gl(self):
         """Configure and initialise the OpenGL context."""
@@ -61,6 +63,64 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Draw a sample signal trace
 
         
+        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue   Colour
+
+        
+        #Trace drawing
+
+
+        #Test trace data
+        """
+        data  = [(i//5) % 2  for i in range(20)]
+
+        GL.glBegin(GL.GL_LINE_STRIP)
+        for i,val in enumerate(data):
+            y = 100 + val*25
+            x = (i * 20) + 10
+            x_next = (i * 20) + 30
+           
+            GL.glVertex2f(x, y)
+            GL.glVertex2f(x_next, y)
+        GL.glEnd()
+
+
+
+        GL.glBegin(GL.GL_LINE_STRIP)
+        for i in range(20):
+            x = (i * 20) + 10
+            x_next = (i * 20) + 30
+            if i % 2 == 0:
+                y = 150
+            else:
+                y = 175
+            GL.glVertex2f(x, y)
+            GL.glVertex2f(x_next, y)
+        GL.glEnd()"""
+
+        # We have been drawing to the back buffer, flush the graphics pipeline
+        # and swap the back buffer to the front
+        GL.glFlush()
+        self.SwapBuffers()
+
+    def clear_canvas(self):
+        self.SetCurrent(self.context)
+        if not self.init:
+            # Configure the viewport, modelview and projection matrices
+            self.init_gl()
+            self.init = True
+        GL.glClearColor(255,255,255,0)
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
+        GL.glFlush()
+        self.SwapBuffers()
+
+
+    def draw_trace(self):
+        self.SetCurrent(self.context)
+        if not self.init:
+            # Configure the viewport, modelview and projection matrices
+            self.init_gl()
+            self.init = True
+
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue   Colour
 
         
@@ -290,6 +350,8 @@ class Gui(wx.Frame):
         val = self.run_spin_control.GetValue()
         text = f"Run button pressed with {val} cycles"
         self.canvas.render(text)
+        self.canvas.draw_trace()
+        print(text)
 
     def OnButton_continue(self, event):
         """Handle the event when the user clicks button_continue."""
@@ -319,6 +381,7 @@ class Gui(wx.Frame):
 
     def OnButton_Quit(self, event):
         """Handle the event when the user clicks button_Quit."""
+        self.canvas.clear_canvas()
         print ("Button Quit pressed")
 
     def getOnButton_Change(self,i):
