@@ -209,6 +209,7 @@ class Scanner:
                 symbol.id = self.names.query(self.string)
             else:
                 symbol.type = self.NAME
+                symbol.id = self.names.lookup(self.string)
             # print(self.string)
         
         else:
