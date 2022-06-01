@@ -165,7 +165,7 @@ class Parser:
             print("Error: New line expected")
 
         while self.symbol.type != stopping_symbol and self.symbol.type != self.scanner.EOF:
-            pdb.set_trace()
+            #pdb.set_trace()
             self.symbol = self.scanner.get_symbol()
 
     def devices_list(self):
