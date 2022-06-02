@@ -64,8 +64,8 @@ class Scanner:
 
         self.names = names
 
-        self.symbol_type_list = [self.PUNCTUATION, self.KEYWORD, self.NAME, self.INTEGER, self.INT16, self.EOF] \
-            = range(6)
+        self.symbol_type_list = [self.PUNCTUATION, self.KEYWORD, self.NAME, self.INTEGER, self.INT16, self.EOF,
+                                 self.SPECIAL] = range(7)
 
         self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
@@ -202,11 +202,16 @@ class Scanner:
                 symbol.id = self.names.query(self.string)
             else:
                 symbol.type = self.NAME
+                symbol.id = self.names.lookup(self.string)
+                symbol.id = symbol.id[0]
             # print(self.string)
 
         else:
-            self.errorPosition()
-            raise SyntaxError("Error: invalid symbol")
+            symbol.type = self.SPECIAL
+            symbol.id = self.names.lookup(self.string)
+            pdb.set_trace()
+            #self.errorPosition()
+            #raise SyntaxError("Error: invalid symbol")
 
         try:
             print(self.names.get_name_string(symbol.id))
