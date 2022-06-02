@@ -7,6 +7,7 @@ Classes
 -------
 Names - maps variable names and string names to unique integers.
 """
+import pdb
 
 
 class Names:
@@ -70,6 +71,9 @@ class Names:
         """
 
         id_list = []
+
+        if type(name_string_list) == str:
+            name_string_list = [name_string_list]
 
         for name_string in name_string_list:
             if name_string not in self.name_list:

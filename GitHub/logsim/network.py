@@ -6,7 +6,7 @@ Classes
 --------
 Network - builds and executes the network.
 """
-
+import pdb
 
 class Network:
 
@@ -114,6 +114,7 @@ class Network:
 
         Return self.NO_ERROR if successful, or the corresponding error if not.
         """
+        pdb.set_trace()
         first_device = self.devices.get_device(first_device_id)
         second_device = self.devices.get_device(second_device_id)
 
