@@ -10,6 +10,37 @@ from network import Network
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
+    """Handle all drawing operations.
+
+    This class contains functions for drawing onto the canvas. It
+    also contains handlers for events relating to the canvas.
+
+    Parameters
+    ----------
+    parent: parent window.
+    devices: instance of the devices.Devices() class.
+    monitors: instance of the monitors.Monitors() class.
+
+    Public methods
+    --------------
+    init_gl(self): Configures the OpenGL context.
+
+    render(self, text): Handles all drawing operations.
+
+    on_paint(self, event): Handles the paint event.
+
+    on_size(self, event): Handles the canvas resize event.
+
+    on_mouse(self, event): Handles mouse events.
+
+    render_text(self, text, x_pos, y_pos): Handles text drawing
+                                           operations.
+
+    clear_canvas(self): Clear the canvas of all current traces of the monitored gates and rendered text.
+
+    draw_trace(self): Draw all the traces for the monitored signals.
+    """
+
     def __init__(self, parent, id, pos, size):
         """Initialise canvas properties and useful variables."""
         super().__init__(
@@ -294,6 +325,36 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
 
 class Gui(wx.Frame):
+    """Configure the main window and all the widgets.
+
+    This class provides a graphical user interface for the Logic Simulator and
+    enables the user to change the circuit properties and run simulations.
+
+    Parameters
+    ----------
+    title: title of the window.
+
+    Public methods
+    --------------
+    on_menu(self, event): Event handler for the file menu.
+
+    on_spin(self, event): Event handler for when the user changes the spin
+                           control value.
+
+    on_run_button(self, event): Event handler for when the user clicks the run
+                                button.
+
+    OnButton_continue(self, event): Event handler for when the user clicks continue 
+    
+    OnButton_Add_Monitor(self, event): Event handler for when the user clicks button Add_Monitor.
+
+    OnButton_Remove_Monitor(self, event):Event handler for when the user clicks button Remove_Monitor.
+
+    OnButton_Quit(self, event):Event handler for when the user clicks button_Quit.
+
+    getOnButton_Change(self, i): Generate an event handlet for a change button depending on the i'th element of the switch.
+    """
+
     def __init__(self, title):
         """Initialise widgets and layout."""
         super().__init__(parent=None, title=title, size=(800, 600))
@@ -539,8 +600,11 @@ class Gui(wx.Frame):
         self.Remove_list.remove(signal)
         self.Add_Monitor_choices.SetItems(self.add_list)
         self.Remove_Monitor_choices.SetItems(self.Remove_list)
+        try:
+            del self.canvas.data[i]
 
-        del self.canvas.data[i]
+        except:
+            pass
         self.canvas.added_monitor_list.remove(signal)
         self.canvas.render(text)
 
