@@ -3,7 +3,7 @@
 import pytest
 import os
 from scanner import Scanner, Symbol
-from names import Names 
+from names import Names
 
 """Functions to test:
 get_symbol()
@@ -13,20 +13,24 @@ get_name()
 get_number()
 reportErrorLocation()"""
 
+
 @pytest.fixture
 def names():
     names = Names()
     return names
+
 
 @pytest.fixture
 def symbol():
     symbol = Symbol()
     return symbol
 
+
 @pytest.fixture
 def scanner():
     scanner = Scanner()
     return scanner
+
 
 @pytest.fixture
 def scanner_with_string():
@@ -34,6 +38,7 @@ def scanner_with_string():
     names = Names()
     scanner = Scanner(string, names, test_string=True)
     return scanner
+
 
 @pytest.fixture
 def random_string():
@@ -46,10 +51,13 @@ def test_scanner_with_non_existing_file(names):
     with pytest.raises(FileNotFoundError):
         Scanner("i_dont_exist.txt", names, test_string=False)
 
+
 def test_skip_spaces(scanner_with_string, expected_out="i"):
+    """Test that spaces are skipped correctly."""
     while scanner_with_string.current_character.isspace():
         scanner_with_string.skip_spaces()
-    assert scanner_with_string.current_character == expected_out 
+    assert scanner_with_string.current_character == expected_out
+
 
 @pytest.mark.parametrize("steps,expected", [
     (0, "S"),
@@ -59,45 +67,49 @@ def test_skip_spaces(scanner_with_string, expected_out="i"):
     (25, "1"),
     (26, ";"),
 ])
-
 def test_advance(steps, expected, random_string, names):
-
+    """Test that the next character is obtained correctly."""
     if os.path.exists("random_string.txt"):
         os.remove("random_string.txt")
+
     f = open("random_string.txt", "a")
     f.write(random_string)
     f.close()
-    
+
     scanner = Scanner("random_string.txt", names, test_string=False)
-    
-    i=0
-    while i<=steps:
+
+    i = 0
+    while i <= steps:
         scanner.advance()
-        i+=1
-    
+        i += 1
     assert scanner.current_character == expected
 
+
 def test_get_name(scanner_with_string):
+    """Test that alphanumerical names are read correctly."""
     while scanner_with_string.current_character.isspace():
         scanner_with_string.skip_spaces()
     scanner_with_string.get_name()
     assert scanner_with_string.string == "is"
-    
+
     while scanner_with_string.current_character.isspace():
         scanner_with_string.skip_spaces()
     scanner_with_string.get_name()
     assert scanner_with_string.string == "AND"
-    
+
     while scanner_with_string.current_character.isspace():
         scanner_with_string.skip_spaces()
     scanner_with_string.get_name()
     assert scanner_with_string.string == "with"
 
+
 def test_get_number(scanner_with_string):
-    while scanner_with_string.current_character.isdigit() == False:
+    """Test that numbers are returned correctly"""
+    while scanner_with_string.current_character.isdigit() is False:
         scanner_with_string.advance()
     number = scanner_with_string.get_number()
     assert number == 10
+
 
 @pytest.mark.parametrize("data, expected_symbol_type", [
     ("AND", 1),
@@ -117,19 +129,33 @@ def test_get_number(scanner_with_string):
     (".", 0),
     ("", 5)
 ])
-
 def test_get_symbol(data, expected_symbol_type, symbol, names):
+    """Test that the symbols are correctly identified"""
     symbol = Scanner(data, names, test_string=True).get_symbol()
     assert symbol.type == expected_symbol_type
 
+
 def test_non_valid_characters(names):
+    """Raise error if invalid character encountered"""
     with pytest.raises(SyntaxError):
         Scanner("!+$", names, test_string=True).get_symbol()
 
+
 def test_comments(symbol, names):
+    """Test comment symbol type and check that it skips until end of line"""
     scanner = Scanner("#this is a comment \n", names, test_string=True)
     symbol = scanner.get_symbol()
 
     assert symbol.type == 0
     assert scanner.current_character == '\n'
 
+
+def test_reportErrorLocation(symbol, names):
+    """Test error pointing for the case of invalid characters."""
+    scanner = Scanner("AND !+$", names, test_string=True)
+    symbol = scanner.get_symbol()
+    assert symbol.type == 1
+    scanner.advance()
+    a, b = scanner.reportErrorLocation()
+    assert a == "+$"
+    assert b == "    ^"
