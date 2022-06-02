@@ -225,14 +225,13 @@ class Scanner:
         else:
             symbol.type = self.SPECIAL
             symbol.id = self.names.lookup(self.string)
-            pdb.set_trace()
             # self.errorPosition()
             # raise SyntaxError("Error: invalid symbol")
 
-        try:
-            print(self.names.get_name_string(symbol.id))
-        except:
-            print(self.string)
+        # try:
+        #     print(self.names.get_name_string(symbol.id))
+        # except:
+        #     print(self.string)
 
         self.symbol_number += 1
 
