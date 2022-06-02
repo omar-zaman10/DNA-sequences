@@ -11,13 +11,13 @@ Parser - parses the definition file and builds the logic network.
 import sys
 import pdb
 
-
 # class Error:
 # def __init__(self):
 # """Initialise symbol properties."""
 
 # self.type = None
 # self.id = None
+import pytest
 
 
 class Parser:
@@ -62,6 +62,7 @@ class Parser:
         self.devices_symbol_list = []
         self.input_added = False
         self.output_added = False
+        self.in_stopping_symbol = False
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -92,8 +93,8 @@ class Parser:
         # print("Error message failed")
         # sys.exit()
 
-        # current_line, pointer = self.scanner.errorPosition()
-        # print(current_line, "\n", pointer)
+        current_line, pointer = self.scanner.errorPosition()
+        print(current_line, "\n", pointer)
 
         if error_type == "NO_END_DEVICES":
             print("Error: Expected a closing devices statement")
@@ -169,11 +170,12 @@ class Parser:
             go_to_next.append(stop[1])
 
         if self.symbol.id in stopping_symbols:
-            in_stopping_symbol = True
+            self.in_stopping_symbol = True
         else:
-            in_stopping_symbol = False
+            self.in_stopping_symbol = False
 
-        while not in_stopping_symbol and self.symbol.type != self.scanner.EOF:
+        while not self.in_stopping_symbol and \
+                self.symbol.type != self.scanner.EOF:
             self.symbol = self.scanner.get_symbol()
             if self.symbol.id in stopping_symbols:
                 symbol_index = stopping_symbols.index(self.symbol.id)
@@ -181,7 +183,7 @@ class Parser:
                 if go_to_next[symbol_index]:
                     self.symbol = self.scanner.get_symbol()
 
-                in_stopping_symbol = True
+                self.in_stopping_symbol = True
 
     def devices_list(self):
         if self.symbol.type == self.scanner.KEYWORD \
@@ -211,6 +213,12 @@ class Parser:
                                       (self.scanner.CONNECTIONS_ID, False),
                                       (self.scanner.MONITOR_ID, False)])
 
+    @pytest.fixture
+    def test_devices_list(self):
+        self.devices_list()
+        assert self.symbol.type == self.scanner.KEYWORD or \
+               self.in_stopping_symbol is True
+
     def connections_list(self):
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.CONNECTIONS_ID:
@@ -235,6 +243,12 @@ class Parser:
         else:
             self.error("NO_CONNECTIONS", [(self.scanner.MONITOR_ID, False)])
 
+    @pytest.fixture
+    def test_connections_list(self):
+        self.connections_list()
+        assert self.symbol.type == self.scanner.KEYWORD or \
+               self.in_stopping_symbol is True
+
     def monitor(self):
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.MONITOR_ID:
@@ -252,6 +266,12 @@ class Parser:
                 self.error("NO_SEMICOLON", [(self.scanner.EOF, False)])
         else:
             self.error("NO_MONITOR", [(self.scanner.SEMICOLON, True)])
+
+    @pytest.fixture
+    def test_monitor(self):
+        self.monitor()
+        assert self.symbol.type == self.scanner.EOF or \
+               self.in_stopping_symbol is True
 
     def device(self):
         self.device_id = self.name()
@@ -272,6 +292,12 @@ class Parser:
             self.error("NO_IS", [(self.scanner.SEMICOLON, True),
                                  (self.scanner.DEVICES_ID, True)])
 
+    @pytest.fixture
+    def test_device(self):
+        assert type(self.device_id) == int \
+               and (self.symbol.type == self.scanner.NAME
+                    or self.symbol.type == self.scanner.KEYWORD)
+
     def name(self):
         if self.symbol.type == self.scanner.NAME:
             name_id = self.get_id(self.symbol)
@@ -282,6 +308,11 @@ class Parser:
                                         (self.scanner.DEVICES_ID, True),
                                         (self.scanner.CONNECTIONS_ID,
                                          True)])  # FIX
+
+    @pytest.fixture
+    def test_name(self):
+        name_id = self.name()
+        assert type(name_id) == int
 
     def gate(self):
         if self.symbol.type == self.scanner.KEYWORD:
@@ -683,10 +714,10 @@ class Parser:
                 and self.symbol.id == self.scanner.TO:
             self.symbol = self.scanner.get_symbol()
             self.input()
-            error_type = self.network.make_connection(self.output_device_id,
-                                                      self.output_id,
-                                                      self.input_device_id,
-                                                      self.input_id)
+            # error_type = self.network.make_connection(self.output_device_id,
+            #                                           self.output_id,
+            #                                           self.input_device_id,
+            #                                           self.input_id)
             if self.symbol.type == self.scanner.PUNCTUATION \
                     and self.symbol.id == self.scanner.SEMICOLON:
                 self.symbol = self.scanner.get_symbol()
@@ -724,6 +755,10 @@ class Parser:
                                        (self.scanner.NAME, False),
                                        (self.scanner.CONNECTIONS_ID, False),
                                        (self.scanner.MONITOR_ID, False)])
+
+    @pytest.fixture
+    def test_input(self):
+        assert type(self.input_device_id) == int
 
     def output(self):
         self.output_device_id = self.name()
@@ -772,6 +807,10 @@ class Parser:
             self.output_added = self.devices.add_input(self.input_device_id,
                                                        self.output_id)
 
+    @pytest.fixture
+    def test_output(self):
+        assert type(self.output_device_id) == int
+
     def boolean_input(self):
         characters = [c for c in self.scanner.string]
         if 1 <= int(characters[1]) <= 16:
@@ -785,17 +824,29 @@ class Parser:
                                        (self.scanner.CONNECTIONS_ID, False),
                                        (self.scanner.MONITOR_ID, False)])
 
+    @pytest.fixture
+    def test_boolean_input(self):
+        assert type(self.input_id) == int and self.input_added is True
+
     def dtype_input(self):
         self.input_id = self.get_id(self.symbol)
         self.input_added = self.devices.add_input(self.input_device_id,
                                                   self.input_id)
         self.symbol = self.scanner.get_symbol()
 
+    @pytest.fixture
+    def test_dtype_input(self):
+        assert type(self.input_id) == int and self.input_added is True
+
     def dtype_output(self):
         self.output_id = self.get_id(self.symbol)
         self.output_added = self.devices.add_input(self.input_device_id,
                                                    self.output_id)
         self.symbol = self.scanner.get_symbol()
+
+    @pytest.fixture
+    def test_dtype_output(self):
+        assert type(self.output_id) == int and self.output_added is True
 
     def initial_input(self):
         if self.symbol.id == self.scanner.ZERO \
