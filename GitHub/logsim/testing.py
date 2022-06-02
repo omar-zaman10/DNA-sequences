@@ -8,7 +8,6 @@ from devices import Device
 from monitors import Monitors
 from network import Network
 
-
 class MyGLCanvas(wxcanvas.GLCanvas):
     def __init__(self, parent, id, pos, size):
         """Initialise canvas properties and useful variables."""
@@ -88,10 +87,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             )
         if event.Leaving():
             text = "".join(
-                ["Mouse left canvas at: ", 
-                str(event.GetX()), 
-                ", ",
-                str(event.GetY())]
+                ["Mouse left canvas at: ", str(event.GetX()), ", ",
+                 str(event.GetY())]
             )
         if event.Dragging():
             self.pan_x += event.GetX() - self.last_mouse_x
@@ -198,7 +195,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SwapBuffers()
 
     def clear_canvas(self):
-        """Clear the canvas of all current traces of the monitored gates and rendered text."""
         self.SetCurrent(self.context)
         if not self.init:
             # Configure the viewport, modelview and projection matrices
@@ -210,7 +206,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.SwapBuffers()
 
     def draw_trace(self):
-        """Draw all the traces for the monitored signals."""
         self.SetCurrent(self.context)
         if not self.init:
             # Configure the viewport, modelview and projection matrices
@@ -462,7 +457,6 @@ class Gui(wx.Frame):
         # self.SetSizer(new_sizer)
 
     def OnPaint(self, event=None):
-        """Draw vertical line for the Switch Panel."""
         dc = wx.PaintDC(self)
         dc.Clear()
         dc.SetPen(wx.Pen(wx.BLACK, 4))
@@ -476,6 +470,7 @@ class Gui(wx.Frame):
 
     def on_run_button(self, event):
         """Handle the event when the user clicks the run button."""
+
         val = self.run_spin_control.GetValue()
         text = f"Run button pressed with {val} cycles"
         # self.canvas.render(text)
@@ -490,11 +485,12 @@ class Gui(wx.Frame):
 
     def OnButton_continue(self, event):
         """Handle the event when the user clicks button_continue."""
+
         val = self.continue_spin_control.GetValue()
         self.number_of_cycles += val
         text = f"Continue button pressed with {val} cycles"
 
-        # self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
+        #self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
         self.canvas.data = [
             [(i // (j + 1)) % 2 for i in range(self.number_of_cycles)]
             for j in range(len(self.canvas.added_monitor_list))
@@ -504,7 +500,8 @@ class Gui(wx.Frame):
         print(f"Button continue pressed with {val} cycles")
 
     def OnButton_Add_Monitor(self, event):
-        """Handle the event when the user clicks button Add_Monitor."""
+        """Handle the event when the user clicks button_Add_Monitor."""
+
         index = self.Add_Monitor_choices.GetCurrentSelection()
         signal = self.Add_Monitor_choices.GetString(index)
 
@@ -526,7 +523,8 @@ class Gui(wx.Frame):
         print(text)
 
     def OnButton_Remove_Monitor(self, event):
-        """Handle the event when the user clicks button Remove_Monitor."""
+        """Handle the event when the user clicks button_Remove_Monitor."""
+
         index = (
             self.Remove_Monitor_choices.GetCurrentSelection()
         )  # - gets selectin index
@@ -559,7 +557,6 @@ class Gui(wx.Frame):
         print("Button Quit pressed")
 
     def getOnButton_Change(self, i):
-        """Generate a handle for a change button depending on the i'th element of the switch."""
         def OnButton_Change(event):
             """Handle the event when the user clicks."""
             # self.colour_panel.SetBackgroundColour('Green')
