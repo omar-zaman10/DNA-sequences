@@ -1,0 +1,42 @@
+DEVICES:
+G1 is AND with 2 inputs; 
+G2 is AND with 2 inputs;
+G3 is OR with 2 inputs;
+G4 is AND with 2 inputs;
+G5 is AND with 2 inputs;
+G6 is OR with 2 inputs;
+G7 is NAND with 2 inputs; #used to model inverter
+SW1 is SWITCH with state 0; #serial input
+SW2 is SWITCH with state 1; #fixed to 1 to model inverter with G7 NAND
+SW3 is SWITCH with state 0; #shift/load
+SW4 is SWITCH with state 0; #parallel input 1
+SW5 is SWITCH with state 0; #parallel input 2
+D1 is DTYPE;
+D2 is DTYPE;
+C1 is CLOCK with 1 cycle period;
+END DEVICES
+
+CONNECTIONS:
+SW2 to G7.I1; #set up inverter with SW2, SW3 and G7
+SW3 to G7.I2; #set up inverter with SW2, SW3 and G7
+SW1 to G1.I1; 
+G7 to G1.I2;
+SW3 to G2.I1; 
+SW4 to G2.I2;
+G1 to G3.I1;
+G2 to G3.I2;
+G3 to D1.DATA;
+D1.Q to G4.I1;
+G7 to G4.I2;
+SW3 to G5.I1;
+SW5 to G5.I2;
+G4 to G6.I1;
+G5 to G6.I2;
+G6 to D2.DATA;
+C1 to D1.CLK;
+C1 to D2.CLK;
+END CONNECTIONS
+
+#monitor parallel outputs
+
+MONITOR D1.Q and D2.Q;
