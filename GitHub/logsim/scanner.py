@@ -58,13 +58,19 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names):
+    def __init__(self, path, names, test_string = False):
         """Open specified file and initialise reserved words and IDs."""
-
-        try:
-            self.input_file = open(path, 'r')
-        except FileNotFoundError:
-            raise FileNotFoundError("Error: File doesn't exist in current directory")
+        
+        if test_string:
+            f = open("test_file.txt", 'a')
+            f.write(path)
+            f.close()
+            self.input_file = open("test_file.txt", 'r')
+        else:
+            try:
+                self.input_file = open(path, 'r')
+            except FileNotFoundError:
+                raise FileNotFoundError("Error: File doesn't exist in current directory")
 
         self.names = names
         
