@@ -158,6 +158,9 @@ class Parser:
         elif error_type == "NO_NEWLINE":
             print("Error: New line expected")
 
+        error_message = self.scanner.errorPosition()
+        print(error_message[0], "\n", error_message[1])
+
         stopping_symbols = []
         go_to_next = []
 
