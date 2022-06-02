@@ -1,9 +1,16 @@
 from unittest import TextTestResult
+from cv2 import add
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
 import numpy as np
 import wx.lib.scrolledpanel as scrolled
+
+from devices import Device
+from monitors import Monitors 
+from network import Network
+
+
 
 
 
@@ -22,6 +29,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Initialise variables for panning
         self.pan_x = 0
         self.pan_y = 0
+        self.data = []  #Signal Data
+        self.added_monitor_list = []
 
         # Initialise variables for zooming
         self.zoom = 1
@@ -29,6 +38,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Bind events to the canvas
         self.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SIZE, self.on_size)
+        self.Bind(wx.EVT_MOUSE_EVENTS, self.on_mouse)
 
 
     def init_gl(self):
@@ -45,6 +55,62 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glLoadIdentity()
         GL.glTranslated(self.pan_x, self.pan_y, 0.0)
         GL.glScaled(self.zoom, self.zoom, self.zoom)
+
+
+    def on_mouse(self, event):
+        """Handle mouse events."""
+        text = ""
+        # Calculate object coordinates of the mouse position
+        size = self.GetClientSize()
+        ox = (event.GetX() - self.pan_x) / self.zoom
+        oy = (size.height - event.GetY() - self.pan_y) / self.zoom
+        old_zoom = self.zoom
+        if event.ButtonDown():
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+            text = "".join(["Mouse button pressed at: ", str(event.GetX()),
+                            ", ", str(event.GetY())])
+        if event.ButtonUp():
+            text = "".join(["Mouse button released at: ", str(event.GetX()),
+                            ", ", str(event.GetY())])
+        if event.Leaving():
+            text = "".join(["Mouse left canvas at: ", str(event.GetX()),
+                            ", ", str(event.GetY())])
+        if event.Dragging():
+            self.pan_x += event.GetX() - self.last_mouse_x
+            self.pan_y -= event.GetY() - self.last_mouse_y
+            self.last_mouse_x = event.GetX()
+            self.last_mouse_y = event.GetY()
+            self.init = False
+            text = "".join(["Mouse dragged to: ", str(event.GetX()),
+                            ", ", str(event.GetY()), ". Pan is now: ",
+                            str(self.pan_x), ", ", str(self.pan_y)])
+        if event.GetWheelRotation() < 0:
+            self.zoom *= (1.0 + (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            # Adjust pan so as to zoom around the mouse position
+            self.pan_x -= (self.zoom - old_zoom) * ox
+            self.pan_y -= (self.zoom - old_zoom) * oy
+            self.init = False
+            text = "".join(["Negative mouse wheel rotation. Zoom is now: ",
+                            str(self.zoom)])
+        if event.GetWheelRotation() > 0:
+            self.zoom /= (1.0 - (
+                event.GetWheelRotation() / (20 * event.GetWheelDelta())))
+            # Adjust pan so as to zoom around the mouse position
+            self.pan_x -= (self.zoom - old_zoom) * ox
+            self.pan_y -= (self.zoom - old_zoom) * oy
+            self.init = False
+            text = "".join(["Positive mouse wheel rotation. Zoom is now: ",
+                            str(self.zoom)])
+        if text:
+            self.render(text)
+            #self.draw_trace()
+        
+        else:
+            self.Refresh()  # triggers the paint event
+
+
 
     def render(self, text):
         """Handle all drawing operations."""
@@ -70,37 +136,52 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
 
         #Test trace data
-        """
-        data  = [(i//5) % 2  for i in range(20)]
+        
 
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i,val in enumerate(data):
-            y = 100 + val*25
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-           
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()
+        #self.draw_trace()
+        #data  = [(i//5) % 2  for i in range(20)]
+
+        if self.data:
+
+            for j,signal in enumerate(self.data):
+
+                GL.glBegin(GL.GL_LINE_STRIP)
+                for i,val in enumerate(signal):
+                    y = 250 + val*25 -50*j
+                    x = (i * 20) + 50
+                    x_next = (i * 20) + 70
+                
+                    GL.glVertex2f(x, y)
+                    GL.glVertex2f(x_next, y)
+                GL.glEnd()
 
 
 
-        GL.glBegin(GL.GL_LINE_STRIP)
-        for i in range(20):
-            x = (i * 20) + 10
-            x_next = (i * 20) + 30
-            if i % 2 == 0:
-                y = 150
-            else:
-                y = 175
-            GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
-        GL.glEnd()"""
+                """GL.glBegin(GL.GL_LINE_STRIP)
+                for i in range(len(signal)):
+                    x = (i * 20) + 50
+                    x_next = (i * 20) + 70
+                    if i % 2 == 0:
+                        y = 150
+                    else:
+                        y = 175
+                    GL.glVertex2f(x, y)
+                    GL.glVertex2f(x_next, y)
+                GL.glEnd()"""
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
+
+        if self.added_monitor_list:
+            for i,signal in enumerate(self.added_monitor_list):
+                self.render_text(signal, 10, 250-50*i)
+
+
+
+
         GL.glFlush()
         self.SwapBuffers()
+
 
     def clear_canvas(self):
         self.SetCurrent(self.context)
@@ -120,6 +201,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             # Configure the viewport, modelview and projection matrices
             self.init_gl()
             self.init = True
+
+        GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue   Colour
 
@@ -277,13 +360,14 @@ class Gui(wx.Frame):
 
         #Controls/menus for buttons
 
-        component_list = ['G1','G3','CLK','S1']
-        Remove_list = ['A1','G2','D1']
+        self.component_list = ['G1','G3','CLK','A1','G2','D1']
+        self.add_list = ['G1','G3','CLK','A1','G2','D1']
+        self.Remove_list = []
 
         self.run_spin_control = wx.SpinCtrl(self, wx.ID_ANY, value = '10', min=0, max=20,pos = (button1_x+120,button1_y))
         self.continue_spin_control = wx.SpinCtrl(self, wx.ID_ANY, value = '10', min=0, max=20,pos = (button1_x+120,button1_y+50))
-        self.Add_Monitor_choices = wx.Choice(self, wx.ID_ANY,choices = component_list,pos = (button1_x+120,button1_y+100))
-        self.Remove_Monitor_choices = wx.Choice(self, wx.ID_ANY,choices = Remove_list,pos = (button1_x+120,button1_y+150))
+        self.Add_Monitor_choices = wx.Choice(self, wx.ID_ANY,choices = self.add_list,pos = (button1_x+120,button1_y+100))
+        self.Remove_Monitor_choices = wx.Choice(self, wx.ID_ANY,choices = self.Remove_list,pos = (button1_x+120,button1_y+150))
 
 
         # Bind events to widgets
@@ -313,10 +397,13 @@ class Gui(wx.Frame):
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         new_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
+
+        #self.panel2 = wx.ScrolledWindow(self,wx.ID_ANY,pos=(25,250),size = (500,300))
         
 
         self.canvas = MyGLCanvas(self.scrollable, wx.ID_ANY, (25,250),  wx.Size(500,300))
-
+        #self.panel2.ShowScrollbars(wx.SHOW_SB_ALWAYS,wx.SHOW_SB_DEFAULT)
+        #self.panel2.SetScrollbars(20, 10, 50,0)
 
 
         self.canvas.SetSizeHints(500, 500)
@@ -349,14 +436,23 @@ class Gui(wx.Frame):
 
         val = self.run_spin_control.GetValue()
         text = f"Run button pressed with {val} cycles"
+        #self.canvas.render(text)
+        self.number_of_cycles = val
+
+        self.canvas.data = [[(i//(j+1)) % 2  for i in range(self.number_of_cycles)] for j in range(len(self.canvas.added_monitor_list))]
         self.canvas.render(text)
-        self.canvas.draw_trace()
         print(text)
 
     def OnButton_continue(self, event):
         """Handle the event when the user clicks button_continue."""
 
         val = self.continue_spin_control.GetValue()
+        self.number_of_cycles += val
+        text = f"Continue button pressed with {val} cycles"
+
+        #self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
+        self.canvas.data = [[(i//(j+1)) % 2  for i in range(self.number_of_cycles)] for j in range(len(self.canvas.added_monitor_list))]
+        self.canvas.render(text)
 
         print (f"Button continue pressed with {val} cycles")
 
@@ -365,23 +461,58 @@ class Gui(wx.Frame):
         """Handle the event when the user clicks button_Add_Monitor."""
 
         index = self.Add_Monitor_choices.GetCurrentSelection() #- gets selectin index
-        sel = self.Add_Monitor_choices.GetString(index)
+        signal = self.Add_Monitor_choices.GetString(index)
 
-        print ("Button Add Monitor pressed",sel)
+        text = f"Button Add Monitor {signal} pressed"
+
+        print(self.add_list)
+
+        self.add_list.remove(signal)
+        self.Remove_list.append(signal)
+
+
+        self.Add_Monitor_choices.SetItems(self.add_list)
+        self.Remove_Monitor_choices.SetItems(self.Remove_list)
+        #self.Add_Monitor_choices.Remove(signal)
+        #self.Remove_Monitor_choices.Append(signal) 
+
+        self.canvas.added_monitor_list.append(signal)
+        self.canvas.render(text)
+
+        print (text)
 
 
     def OnButton_Remove_Monitor(self, event):
         """Handle the event when the user clicks button_Remove_Monitor."""
 
         index = self.Remove_Monitor_choices.GetCurrentSelection() #- gets selectin index
-        sel = self.Remove_Monitor_choices.GetString(index)
+        signal = self.Remove_Monitor_choices.GetString(index)
+        text = f"Button Remove Monitor {signal} pressed"
 
-        print ("Button Remove Monitor pressed",sel)
+        i = self.canvas.added_monitor_list.index(signal)
+
+        self.add_list.append(signal)
+        self.Remove_list.remove(signal)
+        self.Add_Monitor_choices.SetItems(self.add_list)
+        self.Remove_Monitor_choices.SetItems(self.Remove_list)
+        
+        del self.canvas.data[i]
+        self.canvas.added_monitor_list.remove(signal)
+        self.canvas.render(text)
+
+        print (text)
 
 
     def OnButton_Quit(self, event):
         """Handle the event when the user clicks button_Quit."""
         self.canvas.clear_canvas()
+        self.canvas.data = None
+        self.canvas.added_monitor_list = []
+        self.add_list = self.component_list.copy()
+        self.Remove_list = []
+        self.Add_Monitor_choices.SetItems(self.add_list)
+        self.Remove_Monitor_choices.SetItems(self.Remove_list)
+
         print ("Button Quit pressed")
 
     def getOnButton_Change(self,i):
@@ -397,6 +528,6 @@ class Gui(wx.Frame):
         return OnButton_Change
 
 app = wx.App()
-gui = Gui("Demo")
+gui = Gui("GUI")
 gui.Show(True)
 app.MainLoop()
