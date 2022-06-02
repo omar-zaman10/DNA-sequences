@@ -71,6 +71,7 @@ class Parser:
         # skeleton code. When complete, should return False when there are
         # errors in the circuit definition file.
 
+        #circuit = devices, connections, monitor
         self.devices_list()
         self.connections_list()
         self.monitor()
@@ -186,6 +187,8 @@ class Parser:
                 self.in_stopping_symbol = True
 
     def devices_list(self):
+        """devices= "DEVICES", ":", device, ";" ,
+        {device, ";"}, "END DEVICES";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.DEVICES_ID:
             self.symbol = self.scanner.get_symbol()
@@ -220,6 +223,8 @@ class Parser:
                self.in_stopping_symbol is True
 
     def connections_list(self):
+        """connections= "CONNECTIONS", ":", connection, ";",
+        {connection, ";"}, "END CONNECTIONS";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.CONNECTIONS_ID:
             self.symbol = self.scanner.get_symbol()
@@ -250,6 +255,7 @@ class Parser:
                self.in_stopping_symbol is True
 
     def monitor(self):
+        """monitor = "MONITOR", output, {("and"| ",") output}, ";"""""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.MONITOR_ID:
             self.symbol = self.scanner.get_symbol()
@@ -274,6 +280,7 @@ class Parser:
                self.in_stopping_symbol is True
 
     def device(self):
+        """device = name, "is", gate, ";";"""
         self.device_id = self.name()
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.IS:
@@ -299,6 +306,7 @@ class Parser:
                     or self.symbol.type == self.scanner.KEYWORD)
 
     def name(self):
+        """name = character, {character|digit};"""
         if self.symbol.type == self.scanner.NAME:
             name_id = self.get_id(self.symbol)
             self.symbol = self.scanner.get_symbol()
@@ -315,6 +323,8 @@ class Parser:
         assert type(name_id) == int
 
     def gate(self):
+        """gate = switch | clock | and |
+        nand | or | nor | dtype | xor;"""
         if self.symbol.type == self.scanner.KEYWORD:
             if self.symbol.id == self.scanner.SWITCH_ID:
                 self.switch()
@@ -356,6 +366,7 @@ class Parser:
                                    (self.scanner.MONITOR_ID, False)])  # FIX
 
     def switch(self):
+        """switch = "SWITCH with state", inital_switch;"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.SWITCH_ID:
             self.symbol = self.scanner.get_symbol()
@@ -417,6 +428,7 @@ class Parser:
                                       False)])  # FIX
 
     def clock(self):
+        """clock = "CLOCK with", digit, "cycle period";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.CLOCK_ID:
             self.symbol = self.scanner.get_symbol()
@@ -490,6 +502,7 @@ class Parser:
                                      False)])  # FIX
 
     def and_gate(self):
+        """and = "AND with", number_inputs, ("input"|"inputs");"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.AND_ID:
             self.symbol = self.scanner.get_symbol()
@@ -539,6 +552,7 @@ class Parser:
                                   (self.scanner.MONITOR_ID, False)])
 
     def nand_gate(self):
+        """nand = "NAND with", number_inputs, ("input"|"inputs");"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.NAND_ID:
             self.symbol = self.scanner.get_symbol()
@@ -588,6 +602,7 @@ class Parser:
                                    (self.scanner.MONITOR_ID, False)])
 
     def or_gate(self):
+        """or = "OR with", number_inputs, ("input"|"inputs");"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.OR_ID:
             self.symbol = self.scanner.get_symbol()
@@ -637,6 +652,7 @@ class Parser:
                                  (self.scanner.MONITOR_ID, False)])
 
     def nor_gate(self):
+        """nor = "NOR with", number_inputs, ("input"|"inputs");"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.NOR_ID:
             self.symbol = self.scanner.get_symbol()
@@ -687,6 +703,7 @@ class Parser:
                                   (self.scanner.MONITOR_ID, False)])
 
     def dtype(self):
+        """dtype = "DTYPE";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.DTYPE_ID:
             self.symbol = self.scanner.get_symbol()
@@ -698,6 +715,7 @@ class Parser:
                                     (self.scanner.MONITOR_ID, False)])
 
     def xor(self):
+        """xor = "XOR";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.scanner.id == self.scanner.XOR_ID:
             self.symbol = self.scanner.get_symbol()
@@ -709,6 +727,7 @@ class Parser:
                                   (self.scanner.MONITOR_ID, False)])
 
     def connection(self):
+        """connection = output, "to", input;"""
         self.output()
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.TO:
@@ -727,6 +746,7 @@ class Parser:
                                          (self.scanner.MONITOR_ID, False)])
 
     def input(self):
+        """input = name, ".", (boolean_input | dtype_input);"""
         self.input_device_id = self.name()
         if self.symbol.type == self.scanner.PUNCTUATION \
                 and self.symbol.id == self.scanner.FULLSTOP:
@@ -761,6 +781,7 @@ class Parser:
         assert type(self.input_device_id) == int
 
     def output(self):
+        """output = name, [".", (dtype_output | clock_output)];"""
         self.output_device_id = self.name()
         if self.symbol.type == self.scanner.PUNCTUATION \
                 and self.symbol.id == self.scanner.FULLSTOP:
@@ -812,6 +833,7 @@ class Parser:
         assert type(self.output_device_id) == int
 
     def boolean_input(self):
+        """boolean_input = "I", number_inputs;"""
         characters = [c for c in self.scanner.string]
         if 1 <= int(characters[1]) <= 16:
             self.input_id = self.get_id(self.symbol)
@@ -829,6 +851,7 @@ class Parser:
         assert type(self.input_id) == int and self.input_added is True
 
     def dtype_input(self):
+        """dtype_input = ("DATA" | "CLK" | "SET" | "CLEAR");"""
         self.input_id = self.get_id(self.symbol)
         self.input_added = self.devices.add_input(self.input_device_id,
                                                   self.input_id)
@@ -839,6 +862,7 @@ class Parser:
         assert type(self.input_id) == int and self.input_added is True
 
     def dtype_output(self):
+        """dtype_output = ("Q" | "QBAR");"""
         self.output_id = self.get_id(self.symbol)
         self.output_added = self.devices.add_input(self.input_device_id,
                                                    self.output_id)
@@ -849,6 +873,7 @@ class Parser:
         assert type(self.output_id) == int and self.output_added is True
 
     def initial_input(self):
+        """initial_switch = "0"|"1";"""
         if self.symbol.id == self.scanner.ZERO \
                 or self.symbol.id == self.scanner.ONE:
             return True
