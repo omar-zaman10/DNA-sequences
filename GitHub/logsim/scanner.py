@@ -14,6 +14,7 @@ import dataclasses
 import pdb
 import sys
 import parse
+import os
 
 
 class Symbol:
@@ -58,6 +59,8 @@ class Scanner:
     def __init__(self, path, names, test_string=False):
         """Open specified file and initialise reserved words and IDs."""
         if test_string:
+            if os.path.exists("test_file.txt"):
+                os.remove("test_file.txt")
             f = open("test_file.txt", "a")
             f.write(path)
             f.close()
