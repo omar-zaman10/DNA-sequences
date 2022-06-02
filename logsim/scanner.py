@@ -262,13 +262,17 @@ class Scanner:
         return int(number)
 
     def errorPosition(self):
-        """To be called by the parser and in some scases within the scanner
+        """To be called by the parser and in some cases within the scanner
         in case of an error. Returns the erroneous line and a pointer in
         the following line pointing to the erroneous character"""
 
+        current_position = self.input_file.tell()
         pointer = ""
         for i in range(self.character_number):
             pointer += " "
         pointer += "^"
 
-        return self.input_file.readlines()[self.line_number - 1], pointer
+        error_message = self.input_file.readlines()[self.line_number-1], pointer
+        self.input_file.seek(current_position)
+
+        return error_message
