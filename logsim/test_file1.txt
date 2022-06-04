@@ -13,4 +13,4 @@ G1 to G2.I2,
 G2 to G3.DATA,
 C1 to G3.CLK;
 
-MONITOR G3.Q and G2;
+MONITOR SW1 and G2;

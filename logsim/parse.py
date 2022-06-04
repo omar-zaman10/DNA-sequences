@@ -68,8 +68,11 @@ class Parser:
         self.connection_error = False
         self.monitor_error = False
 
-        self.devices_complete = False
-        self.connections_complete = False
+        self.monitoring = False
+
+        self.devices_instance = 0
+        self.connections_instance = 0
+        self.monitoring_instance = 0
 
     def parse_network(self):
         """Parse the circuit definition file."""
@@ -80,30 +83,47 @@ class Parser:
 
         # circuit = devices, connections, monitor
 
+        if self.symbol.type == self.scanner.EOF:
+            print("Error: No file content found")
+            return False
+
         while self.symbol.type != self.scanner.EOF:
             if self.symbol.type == self.scanner.KEYWORD \
                     and self.symbol.id == self.scanner.DEVICES_ID:
                 self.device_error = False
                 self.devices_list()
-                self.devices_complete = True
+                self.devices_instance += 1
+                if self.devices_instance > 1:
+                    break
             elif (self.symbol.type == self.scanner.KEYWORD
                   and self.symbol.id == self.scanner.CONNECTIONS_ID) \
-                    or self.devices_complete:
-                self.devices_complete = False
+                    and self.devices_instance == 1:
                 self.connection_error = False
                 self.connections_list()
-                self.connections_complete = True
+                self.connections_instance += 1
+                if self.connections_instance > 1:
+                    break
             elif (self.symbol.type == self.scanner.KEYWORD
                   and self.symbol.id == self.scanner.MONITOR_ID) \
-                    or self.connections_complete:
-                self.connections_complete = False
+                    and (self.connections_instance == 1
+                         and self.devices_instance == 1):
+                self.monitoring = True
                 self.monitor_error = False
                 self.monitor()
+                self.monitoring_instance += 1
+                if self.monitoring_instance > 1:
+                    break
             elif self.symbol.type == self.scanner.PUNCTUATION \
                     and self.symbol.id == self.scanner.HASHTAG:
                 self.open_comment()
             else:
-                self.devices_list()
+                break
+
+        if self.devices_instance != 1 or \
+                self.connections_instance != 1 or \
+                self.monitoring_instance != 1:
+            print("Error: Not all sections present")
+            self.error_count += 1
 
         if self.error_count == 0:
             return True
@@ -181,6 +201,8 @@ class Parser:
             print("Error: Alphanumeric character expected")
         elif error_type == "NO_HASHTAG":
             print("Error: Hashtag expected")
+        elif error_type == "NO_MONITOR_DEF":
+            print("Error: Incorrect monitor definition")
         elif error_type == "NO_NEWLINE":
             print("Error: New line expected")
 
@@ -413,7 +435,7 @@ class Parser:
                     self.connection_error = True
             else:
                 self.error("NO_INPUT_TYPE", [(self.scanner.CONNECTIONS_ID, False),
-                                           (self.scanner.MONITOR_ID, False)])
+                                             (self.scanner.MONITOR_ID, False)])
                 self.connection_error = True
 
     # @pytest.fixture
@@ -423,44 +445,50 @@ class Parser:
     def output(self):
         """output = name, [".", (dtype_output | clock_output)];"""
         self.output_device_id = self.name()
-        if self.symbol.type == self.scanner.PUNCTUATION \
-                and self.symbol.id == self.scanner.FULLSTOP:
-            self.symbol = self.scanner.get_symbol()
-            if self.symbol.type == \
-                    self.scanner.KEYWORD:
-                if self.symbol.id == self.scanner.Q \
-                        or self.symbol.id == \
-                        self.scanner.QBAR:
-                    self.dtype_output()
+        if self.device_error is False or \
+                self.connection_error is False or \
+                self.monitor_error is False:
+            if self.symbol.type == self.scanner.PUNCTUATION \
+                    and self.symbol.id == self.scanner.FULLSTOP:
+                self.symbol = self.scanner.get_symbol()
+                if self.symbol.type == \
+                        self.scanner.KEYWORD:
+                    if self.symbol.id == self.scanner.Q \
+                            or self.symbol.id == \
+                            self.scanner.QBAR:
+                        self.dtype_output()
+                    else:
+                        self.error("NO_OUTPUT_TYPE", [(self.scanner.CONNECTIONS_ID, False),
+                                                      (self.scanner.MONITOR_ID, False)])
+                        self.connection_error = True
+                        self.monitor_error = True
+                else:
+                    self.error("NO_OUTPUT_TYPE", [(self.scanner.CONNECTIONS_ID,
+                                                   False), (self.scanner.MONITOR_ID, False)])
+                    self.connection_error = True
+                    self.monitor_error = True
+
+            elif self.symbol.id != self.scanner.TO and \
+                    self.symbol.type != self.scanner.EOF and \
+                    self.monitoring is False:
+                if self.symbol.type == self.scanner.NAME:
+                    self.error("NO_CONNECTION", [(self.scanner.MONITOR_ID, False)])
+                    self.connection_error = True
                 else:
                     self.error("NO_OUTPUT_TYPE", [(self.scanner.CONNECTIONS_ID, False),
                                                   (self.scanner.MONITOR_ID, False)])
                     self.connection_error = True
                     self.monitor_error = True
-            else:
-                self.error("NO_OUTPUT_TYPE", [(self.scanner.CONNECTIONS_ID,
-                                               False), (self.scanner.MONITOR_ID, False)])
-                self.connection_error = True
+            elif self.symbol.id != self.scanner.AND and \
+                    self.symbol.id != self.scanner.COMMA and \
+                    self.symbol.type != self.scanner.EOF and \
+                    self.monitoring is True:
+                self.error("NO_MONITOR_DEF", [(self.scanner.EOF, False)])
                 self.monitor_error = True
-
-        elif self.symbol.id != self.scanner.TO and \
-                self.symbol.type != self.scanner.EOF:
-            if self.symbol.type != self.scanner.PUNCTUATION \
-                    and self.symbol.id != self.scanner.SEMICOLON:
-                if self.symbol.type == self.scanner.NAME:
-                    self.error("NO_CONNECTION", [(self.scanner.MONITOR_ID, False)])
-                    self.connection_error = True
-                    self.monitor_error = True
-                else:
-                    self.error("NO_OUTPUT_TYPE", [(self.scanner.CONNECTIONS_ID, False),
-                                                (self.scanner.MONITOR_ID, False)])
-                    self.connection_error = True
-                    self.monitor_error = True
-        else:
-            pdb.set_trace()
-            # self.output_id = self.get_id(self.symbol)
-            # self.output_added = self.devices.add_input(self.input_device_id,
-            #                                            self.output_id)
+            else:
+                self.output_id = self.get_id(self.symbol)
+                self.output_added = self.devices.add_input(self.input_device_id,
+                                                           self.output_id)
 
     # @pytest.fixture
     # def test_name(self):
