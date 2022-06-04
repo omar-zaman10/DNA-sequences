@@ -448,7 +448,7 @@ class Gui(wx.Frame):
             self, wx.ID_ANY, "Remove Monitor", pos=(button1_x, button1_y + 150)
         )
         self.button_Quit = wx.Button(
-            self, wx.ID_ANY, "Quit", pos=(button1_x, button1_y + 200)
+            self, wx.ID_ANY, "Clear", pos=(button1_x, button1_y + 200)
         )
 
         # Controls/menus for buttons
