@@ -1,4 +1,3 @@
-from cv2 import add
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
@@ -7,6 +6,8 @@ import wx.lib.scrolledpanel as scrolled
 from devices import Device
 from monitors import Monitors
 from network import Network
+import sys
+
 
 
 class MyGLCanvas(wxcanvas.GLCanvas):
@@ -183,7 +184,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Draw a sample signal trace
 
-        GL.glColor3f(0.0, 0.0, 1.0)  # signal trace is blue   Colour
+          # signal trace is blue   Colour
 
         # Trace drawing
 
@@ -196,6 +197,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
             for j, signal in enumerate(self.data):
 
+                GL.glColor3f(0.0, 0.0, 1.0)
+
                 GL.glBegin(GL.GL_LINE_STRIP)
                 for i, val in enumerate(signal):
                     y = 250 + val * 25 - 50 * j
@@ -206,17 +209,30 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     GL.glVertex2f(x_next, y)
                 GL.glEnd()
 
-                """GL.glBegin(GL.GL_LINE_STRIP)
-                for i in range(len(signal)):
-                    x = (i * 20) + 50
-                    x_next = (i * 20) + 70
-                    if i % 2 == 0:
-                        y = 150
-                    else:
-                        y = 175
-                    GL.glVertex2f(x, y)
-                    GL.glVertex2f(x_next, y)
-                GL.glEnd()"""
+            for tick in range(0,len(signal)+1,2):
+                x =20*tick +50
+                y = 290
+                self.render_text(str(tick//2), x, 290)
+
+            for tick in range(0,len(signal)+1):
+                GL.glBegin(GL.GL_LINE_STRIP)
+                x =20*tick +50
+                y = 290
+                y_next = 280
+                GL.glVertex2f(x, y)
+                GL.glVertex2f(x, y_next)
+                GL.glEnd()
+
+
+            GL.glColor3f(0.0, 0.0, 0.0)
+            GL.glBegin(GL.GL_LINE_STRIP)
+            y = 285
+            x = 50
+            x_next = (len(signal)* 20) + 70
+            GL.glVertex2f(x, y)
+            GL.glVertex2f(x_next, y)
+            GL.glEnd()
+
 
         # We have been drawing to the back buffer, flush the graphics pipeline
         # and swap the back buffer to the front
@@ -357,7 +373,7 @@ class Gui(wx.Frame):
 
     def __init__(self, title):
         """Initialise widgets and layout."""
-        super().__init__(parent=None, title=title, size=(800, 600))
+        super().__init__(parent=None, title=title, size=(850, 700))
 
         # Configure the file menu
         fileMenu = wx.Menu()
@@ -373,19 +389,19 @@ class Gui(wx.Frame):
         # Switch Panel
 
         self.panel = wx.ScrolledWindow(self, wx.ID_ANY, pos=(25, 50), size=(300, 175))
-        #self.panel.SetBackgroundColour()
+        #self.panel.SetBackgroundColour("White")
 
         switch_x = 10
         switch_y = 10
         n = 12  # number of switches
 
-        self.text = wx.StaticText(
-            self.panel, wx.ID_ANY, "Switches", pos=(switch_x, switch_y)
+        self.text_switch = wx.StaticText(
+            self.panel, wx.ID_ANY, "Switches", pos=(switch_x-5, switch_y)
         )
-        self.text = wx.StaticText(
-            self.panel, wx.ID_ANY, "Current State", pos=(switch_x + 70, switch_y)
+        self.text_switch_state = wx.StaticText(
+            self.panel, wx.ID_ANY, "Current State", pos=(switch_x + 75, switch_y)
         )
-        self.text = wx.StaticText(
+        self.text_switch_change = wx.StaticText(
             self.panel, wx.ID_ANY, "Change State", pos=(switch_x + 170, switch_y)
         )
 
@@ -434,21 +450,29 @@ class Gui(wx.Frame):
         # Configure the widgets
 
         # buttons as part o widgets
-        button1_x = 550
-        button1_y = 300
+        button1_x = 25
+        button1_y = 25
 
-        self.button_run = wx.Button(self, wx.ID_ANY, "Run", pos=(button1_x, button1_y))
+        self.panel2 = wx.Panel(self.scrollable, wx.ID_ANY, pos=(550, 250), size=(300, 400))
+        #self.panel2.SetBackgroundColour("White")
+
+
+        self.button_run = wx.Button(self.panel2, wx.ID_ANY, "Run", pos=(button1_x, button1_y))
         self.button_continue = wx.Button(
-            self, wx.ID_ANY, "Continue", pos=(button1_x, button1_y + 50)
+            self.panel2, wx.ID_ANY, "Continue", pos=(button1_x, button1_y + 50)
         )
         self.button_Add_Monitor = wx.Button(
-            self, wx.ID_ANY, "Add Monitor", pos=(button1_x, button1_y + 100)
+            self.panel2, wx.ID_ANY, "Add Monitor", pos=(button1_x, button1_y + 100)
         )
         self.button_Remove_Monitor = wx.Button(
-            self, wx.ID_ANY, "Remove Monitor", pos=(button1_x, button1_y + 150)
+            self.panel2, wx.ID_ANY, "Remove Monitor", pos=(button1_x, button1_y + 150)
         )
         self.button_Quit = wx.Button(
-            self, wx.ID_ANY, "Clear", pos=(button1_x, button1_y + 200)
+            self.panel2, wx.ID_ANY, "Clear", pos=(button1_x, button1_y + 200)
+        )
+
+        self.button_language = wx.Button(
+            self.panel2, wx.ID_ANY, "Change Language", pos=(button1_x, button1_y + 250)
         )
 
         # Controls/menus for buttons
@@ -456,29 +480,37 @@ class Gui(wx.Frame):
         self.component_list = ["G1", "G3", "CLK", "A1", "G2", "D1"]
         self.add_list = ["G1", "G3", "CLK", "A1", "G2", "D1"]
         self.Remove_list = []
+        self.language_list = ['English','Arabic']
 
         self.run_spin_control = wx.SpinCtrl(
-            self, wx.ID_ANY, value="10", min=0, max=20, pos=(button1_x + 120, button1_y)
+            self.panel2, wx.ID_ANY, value="10", min=0, max=20, pos=(button1_x + 130, button1_y)
         )
         self.continue_spin_control = wx.SpinCtrl(
-            self,
+            self.panel2,
             wx.ID_ANY,
             value="10",
             min=0,
             max=20,
-            pos=(button1_x + 120, button1_y + 50),
+            pos=(button1_x + 130, button1_y + 50),
         )
         self.Add_Monitor_choices = wx.Choice(
-            self,
+            self.panel2,
             wx.ID_ANY,
             choices=self.add_list,
-            pos=(button1_x + 120, button1_y + 100),
+            pos=(button1_x + 130, button1_y + 100),
         )
         self.Remove_Monitor_choices = wx.Choice(
-            self,
+            self.panel2,
             wx.ID_ANY,
             choices=self.Remove_list,
-            pos=(button1_x + 120, button1_y + 150),
+            pos=(button1_x + 130, button1_y + 150),
+        )
+
+        self.Language_choices = wx.Choice(
+            self.panel2,
+            wx.ID_ANY,
+            choices=self.language_list,
+            pos=(button1_x + 130, button1_y + 250),
         )
 
         # Bind events to widgets
@@ -488,6 +520,7 @@ class Gui(wx.Frame):
         self.button_Add_Monitor.Bind(wx.EVT_BUTTON, self.OnButton_Add_Monitor)
         self.button_Remove_Monitor.Bind(wx.EVT_BUTTON, self.OnButton_Remove_Monitor)
         self.button_Quit.Bind(wx.EVT_BUTTON, self.OnButton_Quit)
+        self.button_language.Bind(wx.EVT_BUTTON, self.OnButton_Language)
 
         # self.change_button.Bind(wx.EVT_BUTTON, self.OnButton_Change)
 
@@ -619,8 +652,39 @@ class Gui(wx.Frame):
         self.Remove_list = []
         self.Add_Monitor_choices.SetItems(self.add_list)
         self.Remove_Monitor_choices.SetItems(self.Remove_list)
-
         print("Button Quit pressed")
+
+    def OnButton_Language(self, event):
+        """Handle the event when the user clicks button_Quit."""
+        index = self.Language_choices.GetCurrentSelection()
+        language = self.Language_choices.GetString(index)
+
+        if language == 'Arabic':
+            self.button_run.SetLabel('ركض')
+            self.button_continue.SetLabel('استمر')
+            self.button_Add_Monitor.SetLabel('أضف شاشة')
+            self.button_Remove_Monitor.SetLabel('قم بإزالة الشاشة')
+            self.button_Quit.SetLabel('صافي')
+            self.text_switch.SetLabel('مفتاح كهربائي')
+            self.text_switch_state.SetLabel('الوضع الحالي')
+            self.text_switch_change.SetLabel('تغيير الوضع')
+            for i in self.list_of_change_buttons:
+                i.SetLabel('للتغيير')
+
+        elif language == 'English':
+            self.button_run.SetLabel('Run')
+            self.button_continue.SetLabel('Continue')
+            self.button_Add_Monitor.SetLabel('Add Monitor')
+            self.button_Remove_Monitor.SetLabel('Remove Monitor')
+            self.button_Quit.SetLabel('Clear')
+            self.text_switch.SetLabel('Switches')
+            self.text_switch_state.SetLabel('Current State')
+            self.text_switch_change.SetLabel('Change State')
+            for i in self.list_of_change_buttons:
+                i.SetLabel('Change')
+
+
+        print("Button Language pressed")
 
     def getOnButton_Change(self, i):
         """Generate a handle for a change button depending on the i'th element of the switch."""
@@ -633,6 +697,8 @@ class Gui(wx.Frame):
             print(f"Button Change S{i+1} pressed")
 
         return OnButton_Change
+
+
 
 
 app = wx.App()
