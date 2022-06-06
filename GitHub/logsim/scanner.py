@@ -65,6 +65,7 @@ class Scanner:
             f.write(path)
             f.close()
             self.input_file = open("test_file.txt", "r")
+            self.address = "test_file.txt"
         else:
             try:
                 self.input_file = open(path, "r")
@@ -79,14 +80,14 @@ class Scanner:
                                  self.INTEGER, self.INT16, self.EOF,
                                  self.SPECIAL] = range(7)
 
-        self.punctuation_list = [";", ":", ".", ",", "#", "\n"]
+        self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
         [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA,
-         self.HASHTAG, self.NEWLINE] = self.names.lookup(self.punctuation_list)
+         self.HASHTAG, self.NEWLINE, self.EOF_ID] = self.names.lookup(self.punctuation_list)
 
         self.numbers_list = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
                              "10", "11", "12", "13", "14", "15", "16"]
-
+    
         [
          self.ZERO, self.ONE, self.TWO, self.THREE, self.FOUR, self.FIVE,
          self.SIX, self.SEVEN, self.EIGHT, self.NINE, self.TEN, self.ELEVEN,
@@ -96,15 +97,15 @@ class Scanner:
         self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END", "to",
                               "is", "SWITCH", "with", "state", "and", "CLOCK",
                               "cycle", "period", "AND", "NAND", "OR", "NOR",
-                              "DTYPE", "XOR", "input", "inputs", "I", "DATA",
-                              "CLK", "SET", "CLEAR", "Q", "QBAR"]
+                              "DTYPE", "XOR", "NOT", "input", "inputs", "I",
+                              "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
 
         [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID,
          self.TO, self.IS, self.SWITCH_ID, self.WITH, self.STATE, self.AND,
          self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID,
-         self.OR_ID, self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT,
-         self.INPUTS, self.I, self.DATA, self.CLK, self.SET, self.CLEAR,
-         self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+         self.OR_ID, self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.NOT_ID,
+         self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
+         self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
 
         self.current_character = " "
         self.character_number = 0
@@ -129,7 +130,7 @@ class Scanner:
             # print(";")
 
         elif self.current_character == ":":
-            symbol.type = self.COLON
+            symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
             self.advance()
             # print(":")
@@ -167,6 +168,7 @@ class Scanner:
         # identify end of file
         elif self.current_character == "":
             symbol.type = self.EOF
+            symbol.id = self.EOF_ID
             self.string = ""
 
         # identify integers, in particular 1-16 for gate input allocation
@@ -211,8 +213,8 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
-            elif type(symbol.id) == float:
-                self.reportErrorLocation()
+            elif type(number) == float:
+                self.error_location()
                 raise SyntaxError("Invalid number: only integers allowed")
             self.advance()
 
@@ -227,16 +229,19 @@ class Scanner:
             else:
                 symbol.type = self.NAME
                 symbol.id = self.names.lookup(self.string)
+                symbol.id = symbol.id[0]
             # print(self.string)
 
         else:
-            self.reportErrorLocation()
+            symbol.type == self.SPECIAL
+            symbol.id = self.names.lookup(self.string)
+            self.error_location()
             raise SyntaxError("Error: invalid character")
 
-        try:
-            print(self.names.get_name_string(symbol.id))
-        except Exception:
-            print(self.string)
+        # try:
+        #     print(self.names.get_name_string(symbol.id))
+        # except Exception:
+        #     print(self.string)
 
         symbol.position = self.character_number
         symbol.line = self.line_number
@@ -282,16 +287,16 @@ class Scanner:
         self.input_file.seek(current_position)
         return int(number)
 
-    def reportErrorLocation(self):
+    def error_location(self):
         """For basic error handling.
 
         To be called by the parser and in some cases within the scanner
         in case of an error. Returns the erroneous line and a pointer
         in the following line pointing to the erroneous character
         """
+        #current_position = self.input_file.tell()
         pointer = ""
-
-        for i in range(self.character_number - 1):
+        for i in range(self.character_number):
             pointer += " "
 
         pointer += "^"
@@ -300,7 +305,13 @@ class Scanner:
 
         """Returns the erroneous line to the console, with a pointer in
         the next line to show poisiton of error"""
-        # print(self.input_file.read()[self.line_number], end = '\n')
-        # print(pointer)
 
-        return self.input_file.readlines()[self.line_number - 1], pointer
+        error_message = \
+            self.input_file.readlines()[self.line_number], pointer
+        
+        #self.input_file.seek(current_position)
+        
+
+        #return self.input_file.readlines()[self.line_number - 1], pointer
+
+        return error_message

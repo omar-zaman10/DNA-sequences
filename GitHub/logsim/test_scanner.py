@@ -150,12 +150,14 @@ def test_comments(symbol, names):
     assert scanner.current_character == '\n'
 
 
-def test_reportErrorLocation(symbol, names):
+def test_error_location(symbol, names):
     """Test error pointing for the case of invalid characters."""
     scanner = Scanner("AND !+$", names, test_string=True)
+    # scanner = Scanner("test_file.txt", names, test_string=False)
     symbol = scanner.get_symbol()
     assert symbol.type == 1
     scanner.advance()
-    a, b = scanner.reportErrorLocation()
+    a, b = scanner.error_location()
+    print(a,b)
     assert a == "+$"
-    assert b == "    ^"
+    assert b == "     ^"
