@@ -6,11 +6,11 @@ G3 is DTYPE,
 C1 is CLOCK with 2 cycle period;
 
 CONNECTIONS:
-SW1.Q to G1.I2,
+SW1 to G1.I2,
 G3.Q to G1.I2,
 SW1 to G2.I1,
 G1 to G2.I2,
 G2 to G3.DATA,
 C1 to G3.CLK;
 
-MONITOR SW1 and G2;
+MONITOR G3.Q and G2;
