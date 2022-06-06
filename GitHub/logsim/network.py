@@ -6,7 +6,7 @@ Classes
 --------
 Network - builds and executes the network.
 """
-import pdb
+
 
 class Network:
 
@@ -114,7 +114,6 @@ class Network:
 
         Return self.NO_ERROR if successful, or the corresponding error if not.
         """
-        pdb.set_trace()
         first_device = self.devices.get_device(first_device_id)
         second_device = self.devices.get_device(second_device_id)
 
@@ -234,6 +233,7 @@ class Network:
             input_signal_list.append(input_signal)
 
             if device.device_kind != self.devices.XOR:
+                # if device.device_kind != self.devices.NOT:
                 if input_signal != x:
                     output_signal = self.invert_signal(y)
                     break
@@ -245,6 +245,10 @@ class Network:
                 output_signal = self.devices.LOW
             else:
                 output_signal = self.devices.HIGH
+
+        # if device.device_kind == self.devices.NOT:
+        #    Output is the inverted input
+        #     output_signal = self.invert_signal(y)
 
         # Update and store the new signal
         signal = self.get_output_signal(device_id, None)
@@ -359,6 +363,7 @@ class Network:
         nand_devices = self.devices.find_devices(self.devices.NAND)
         nor_devices = self.devices.find_devices(self.devices.NOR)
         xor_devices = self.devices.find_devices(self.devices.XOR)
+        not_devices = self.devices.find_devices(self.devices.NOT)
 
         # This sets clock signals to RISING or FALLING, where necessary
         self.update_clocks()
@@ -401,6 +406,10 @@ class Network:
                     return False
             for device_id in xor_devices:  # execute XOR devices
                 if not self.execute_gate(device_id, None, None):
+                    return False
+            for device_id in not_devices:  # execute NOT gate devices
+                if not self.execute_gate(device_id, self.devices.HIGH,
+                                         self.devices.LOW):
                     return False
             if self.steady_state:
                 break
