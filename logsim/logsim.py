@@ -22,7 +22,7 @@ from monitors import Monitors
 from scanner import Scanner
 from parse import Parser
 from userint import UserInterface
-from gui import Gui
+from gui_main import Gui
 
 
 def main(arg_list):
@@ -73,8 +73,7 @@ def main(arg_list):
         if parser.parse_network():
             # Initialise an instance of the gui.Gui() class
             app = wx.App()
-            gui = Gui("Logic Simulator", path, names, devices, network,
-                      monitors)
+            gui = gui = Gui("GUI",names, devices, network, monitors)
             gui.Show(True)
             app.MainLoop()
 
