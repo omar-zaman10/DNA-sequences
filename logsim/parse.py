@@ -614,6 +614,8 @@ class Parser:
                 self.dtype()
             elif self.symbol.id == self.scanner.XOR_ID:
                 self.xor()
+            elif self.symbol.id == self.scanner.NOT_ID:
+                self.not_gate()
             else:
                 self.error("NO_GATE_TYPE", [(self.scanner.COMMA, False),
                                             (self.scanner.CONNECTIONS_ID, False),
@@ -977,6 +979,21 @@ class Parser:
     # @pytest.fixture
     # def test_output(self):
     #     assert type(self.output_device_id) == int
+
+    def not_gate(self):
+        if self.symbol.type == self.scanner.KEYWORD \
+                and self.symbol.id == self.scanner.NOT_ID:
+            if self.device_error is False:
+                self.devices.make_gate(self.device_id, self.devices.NOT, 1)
+            self.symbol = self.scanner.get_symbol()
+        else:
+            self.error("NO_NOT", [(self.scanner.COMMA, False),
+                                  (self.scanner.CONNECTIONS_ID, False),
+                                  (self.scanner.MONITOR_ID, False)])
+            if self.symbol.id == self.scanner.COMMA:
+                self.symbol = self.scanner.get_symbol()
+                self.gate_error = True
+            self.device_error = True
 
     def boolean_input(self):
         """boolean_input = "I", number_inputs;"""

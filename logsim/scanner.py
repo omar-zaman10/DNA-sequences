@@ -90,14 +90,14 @@ class Scanner:
                               "END", "to", "is", "SWITCH", "with",
                               "state", "and", "CLOCK", "cycle",
                               "period", "AND", "NAND", "OR", "NOR",
-                              "DTYPE", "XOR", "input", "inputs",
+                              "DTYPE", "XOR", "NOT", "input", "inputs",
                               "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
 
         [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID,
          self.END_ID, self.TO, self.IS, self.SWITCH_ID,
          self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE,
          self.PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID,
-         self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT,
+         self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.NOT_ID, self.INPUT,
          self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
          self.CLEAR, self.Q, self.QBAR] = \
             self.names.lookup(self.keywords_list)
@@ -204,6 +204,7 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
+                    symbol.id = self.names.lookup(str(number))
             elif type(symbol.id) == float:
                 self.errorPosition()
                 raise SyntaxError("Invalid number: only integers allowed")
@@ -272,6 +273,7 @@ class Scanner:
 
         while self.current_character.isdigit():
             number = number + self.current_character
+            current_position = self.input_file.tell()
             self.nextCharacter()
 
         self.input_file.seek(current_position)
