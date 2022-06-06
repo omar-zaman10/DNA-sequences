@@ -1,7 +1,7 @@
 DEVICES:
 G1 is AND with 2 inputs,
 G2 is AND with 2 inputs,
-G3 is AND with 2 inputs,
+G3 is OR with 2 inputs,
 G4 is AND with 2 inputs,
 G5 is AND with 2 inputs,
 G6 is OR with 2 inputs,
