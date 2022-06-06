@@ -507,6 +507,7 @@ class Parser:
                 if self.symbol.type == self.scanner.NAME \
                         and characters[0] == "I":
                     self.boolean_input()
+                    print(self.devices.get_signal_name(self.input_device_id, self.input_id))
                 elif self.symbol.type == self.scanner.KEYWORD \
                         and (self.symbol.id == self.scanner.DATA or
                              self.symbol.id == self.scanner.CLK or
