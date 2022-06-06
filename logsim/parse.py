@@ -73,6 +73,7 @@ class Parser:
         self.gate_error = False
         self.input_error = False
         self.output_error = False
+        self.id_error = False
 
         self.defining = False
         self.connecting = False
@@ -104,6 +105,7 @@ class Parser:
                 self.defining = True
                 self.device_error = False
                 self.devices_list()
+                pdb.set_trace()
                 self.defining = False
                 self.devices_instance += 1
                 if self.devices_instance > 1:
@@ -114,6 +116,7 @@ class Parser:
                 self.connecting = True
                 self.connection_error = False
                 self.connections_list()
+                pdb.set_trace()
                 self.connecting = False
                 self.connections_instance += 1
                 if self.connections_instance > 1:
@@ -135,9 +138,9 @@ class Parser:
             else:
                 break
 
-        if self.devices_instance != 1 or \
-                self.connections_instance != 1 or \
-                self.monitoring_instance != 1:
+        if (self.devices_instance != 1 or
+                self.connections_instance != 1 or
+                self.monitoring_instance != 1) and self.id_error is False:
             print("Error: Not all sections present")
             self.error_count += 1
 
@@ -221,6 +224,10 @@ class Parser:
             print("Error: Incorrect monitor definition")
         elif error_type == "NO_NEWLINE":
             print("Error: New line expected")
+        elif error_type == "DEVICE_EXISTS":
+            print("Error: Device name already used")
+        elif error_type == "NO_DEVICE":
+            print("Error: Device has not been defined")
 
         # error_message = self.scanner.errorPosition()
         # print(error_message[0], "\n", error_message[1])
@@ -372,9 +379,12 @@ class Parser:
                 else:
                     if self.name_error:
                         self.name_error = False
+                        self.device_error = False
                     elif self.gate_error:
                         self.gate_error = False
-                    self.device_error = False
+                        self.device_error = False
+                    elif self.id_error is False:
+                        self.device_error = False
             else:
                 self.error("NO_IS", [(self.scanner.CONNECTIONS_ID, False),
                                      (self.scanner.MONITOR_ID, False),
@@ -387,9 +397,12 @@ class Parser:
         else:
             if self.name_error:
                 self.name_error = False
+                self.device_error = False
             elif self.gate_error:
                 self.gate_error = False
-            self.device_error = False
+                self.device_error = False
+            elif self.id_error is False:
+                self.device_error = False
 
     # @pytest.fixture
     # def test_device(self):
@@ -455,17 +468,23 @@ class Parser:
                     else:
                         self.connection_error = True
             else:
-                if self.input_error:
-                    self.input_error = False
-                elif self.name_error:
+                if self.name_error:
                     self.name_error = False
-                self.connection_error = False
+                    self.connection_error = False
+                elif self.gate_error:
+                    self.gate_error = False
+                    self.connection_error = False
+                elif self.id_error is False:
+                    self.connection_error = False
         else:
-            if self.output_error:
-                self.output_error = False
-            elif self.name_error:
+            if self.name_error:
                 self.name_error = False
-            self.connection_error = False
+                self.device_error = False
+            elif self.gate_error:
+                self.gate_error = False
+                self.device_error = False
+            elif self.id_error is False:
+                self.device_error = False
 
     def input(self):
         """input = name, ".", (boolean_input | dtype_input);"""
@@ -566,35 +585,35 @@ class Parser:
             if self.symbol.id == self.scanner.SWITCH_ID:
                 self.switch()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "SWITCH")
+                    self.devices.add_device(self.device_id, self.devices.SWITCH)
             elif self.symbol.id == self.scanner.CLOCK_ID:
                 self.clock()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "CLOCK")
+                    self.devices.add_device(self.device_id, self.devices.CLOCK)
             elif self.symbol.id == self.scanner.AND_ID:
                 self.and_gate()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "AND")
+                    self.devices.add_device(self.device_id, self.devices.AND)
             elif self.symbol.id == self.scanner.NAND_ID:
                 self.nand_gate()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "NAND")
+                    self.devices.add_device(self.device_id, self.devices.NAND)
             elif self.symbol.id == self.scanner.OR_ID:
                 self.or_gate()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "OR")
+                    self.devices.add_device(self.device_id, self.devices.OR)
             elif self.symbol.id == self.scanner.NOR_ID:
                 self.nor_gate()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "NOR")
+                    self.devices.add_device(self.device_id, self.devices.NOR)
             elif self.symbol.id == self.scanner.DTYPE_ID:
                 self.dtype()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "DTYPE")
+                    self.devices.add_device(self.device_id, self.devices.D_TYPE)
             elif self.symbol.id == self.scanner.XOR_ID:
                 self.xor()
                 if self.device_error is False:
-                    self.devices.add_device(self.device_id, "XOR")
+                    self.devices.add_device(self.device_id, self.scanner.XOR)
             else:
                 self.error("NO_GATE_TYPE", [(self.scanner.COMMA, False),
                                             (self.scanner.CONNECTIONS_ID, False),
@@ -1009,11 +1028,25 @@ class Parser:
             self.error("NO_HASHTAG", [(self.scanner.NEWLINE, True)])
 
     def get_id(self, device_name):
-
         symbol_id = device_name.id
-        if symbol_id not in self.devices_symbol_list:
-            self.devices_symbol_list.append(symbol_id)
 
-        device_id = self.devices_symbol_list.index(symbol_id)
+        if self.defining:
+            if symbol_id not in self.devices_symbol_list:
+                self.devices_symbol_list.append(symbol_id)
+                device_id = self.devices_symbol_list.index(symbol_id)
+                return device_id
+            else:
+                self.error("DEVICE_EXISTS", [(None, False)])
+                self.id_error = True
+                self.device_error = True
+                return None
 
-        return device_id
+        elif self.connecting:
+            if symbol_id in self.devices_symbol_list:
+                device_id = self.devices_symbol_list.index(symbol_id)
+                return device_id
+            else:
+                self.error("NO_DEVICE", [(None, False)])
+                self.id_error = True
+                self.connection_error = True
+                return None
