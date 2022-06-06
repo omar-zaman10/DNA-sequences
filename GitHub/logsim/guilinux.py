@@ -449,7 +449,7 @@ class Gui(wx.Frame):
         self.panel_connections = wx.Panel(self, wx.ID_ANY, pos=(450, 50), size=(400, 175))
         #self.panel_connections.SetBackgroundColour('White)
 
-        self.text = wx.StaticText(
+        self.text_connections = wx.StaticText(
                 self.panel_connections,
                 wx.ID_ANY,
                 'Connections',
@@ -470,18 +470,18 @@ class Gui(wx.Frame):
             pos=(250, 50),
         )
 
-        self.text = wx.StaticText(
+        self.text_input_pins = wx.StaticText(
                 self.panel_connections,
                 wx.ID_ANY,
-                'Connect Input Pin',
-                pos=(25, 50),
+                'Connect Input Pins',
+                pos=(0, 50),
             )
 
-        self.text = wx.StaticText(
+        self.text_output_pins = wx.StaticText(
                 self.panel_connections,
                 wx.ID_ANY,
                 'To Output pin',
-                pos=(25, 100),
+                pos=(0, 100),
             )
 
         self.Output_choices1 = wx.Choice(
@@ -716,6 +716,12 @@ class Gui(wx.Frame):
             self.text_switch.SetLabel('مفتاح كهربائي')
             self.text_switch_state.SetLabel('الوضع الحالي')
             self.text_switch_change.SetLabel('تغيير الوضع')
+            self.text_connections.SetLabel('روابط')
+            self.text_input_pins.SetLabel('قم بتوصيل دبوس الإدخال')
+            self.text_output_pins.SetLabel('لإخراج دبوس')
+            self.connections_button.SetLabel('صنع روابط')
+            
+            
             for i in self.list_of_change_buttons:
                 i.SetLabel('للتغيير')
 
@@ -728,6 +734,11 @@ class Gui(wx.Frame):
             self.text_switch.SetLabel('Switches')
             self.text_switch_state.SetLabel('Current State')
             self.text_switch_change.SetLabel('Change State')
+            self.text_connections.SetLabel('Connections')
+            self.text_input_pins.SetLabel('Connect Input Pins')
+            self.text_output_pins.SetLabel('To Output Pin')
+            self.connections_button.SetLabel('Make Connection')
+
             for i in self.list_of_change_buttons:
                 i.SetLabel('Change')
 
