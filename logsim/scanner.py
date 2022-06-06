@@ -8,10 +8,12 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
+import names
 import dataclasses
 import pdb
 import sys
 import parse
+import os 
 
 
 class Symbol:
@@ -31,8 +33,8 @@ class Symbol:
 
         self.type = None
         self.id = None
-        # self.line = None
-        # self.position = None
+        self.line = None
+        self.position = None
 
 
 class Scanner:
@@ -54,15 +56,22 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names):
+    def __init__(self, path, names, test_string=False):
         """Open specified file and initialise reserved words and IDs."""
-
-        try:
-            self.input_file = open(path, 'r')
-        except FileNotFoundError:
-            raise \
-                FileNotFoundError("Error: File doesn't "
-                                  "exist in current directory")
+        if test_string:
+            if os.path.exists("test_file.txt"):
+                os.remove("test_file.txt")
+            f = open("test_file.txt", "a")
+            f.write(path)
+            f.close()
+            self.input_file = open("test_file.txt", "r")
+        else:
+            try:
+                self.input_file = open(path, 'r')
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    "Error: File doesn't exist in current directory"
+                )
 
         self.names = names
 
@@ -102,59 +111,63 @@ class Scanner:
          self.CLEAR, self.Q, self.QBAR] = \
             self.names.lookup(self.keywords_list)
 
+
         self.current_character = " "
-        self.line_number = 0
         self.character_number = 0
+        self.line_number = 0
         self.symbol_number = 0
+        self.scanner_error_count = 0
         self.string = ""
+        self.address = path
 
     def get_symbol(self):
-        """Translate the next sequence of
-        characters into a symbol for the parser"""
-
-        symbol = Symbol()
-        self.skip_space()
+        """Translate the next sequence of characters into a symbol.
+        Symbols to be passed requested by the parser
+        """
+        symbol = Symbol()  # create instance of the symbol class
+        self.skip_spaces()  # current character is now now whitespace
 
         # check for punctuation (semicolon, colon, full stop, comma)
         if self.current_character == ';':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
+            # print(";")
 
         elif self.current_character == ':':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(":")
 
         elif self.current_character == '.':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(".")
 
         elif self.current_character == ",":
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(",")
 
         # check for new line
         elif self.current_character == '\n':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
 
         # check for comments
         elif self.current_character == "#":
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
             # print("#")
-            self.nextCharacter()
+            self.advance()
             while self.current_character != '\n':
                 # print(self.current_character)
                 symbol.type = self.PUNCTUATION
-                self.nextCharacter()
+                self.advance()
 
         # check for end of line
         elif self.current_character == "":
@@ -164,7 +177,7 @@ class Scanner:
 
         # check for integers, in particular 1-16 for gate input allocation
         elif self.current_character.isdigit():
-            number = self.getNumber()
+            number = self.get_number()
             if type(number) == int:
                 if 0 <= number <= 16:
                     symbol.type = self.INT16
@@ -204,15 +217,18 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
-                    symbol.id = self.names.lookup(str(number))
-            elif type(symbol.id) == float:
-                self.errorPosition()
-                raise SyntaxError("Invalid number: only integers allowed")
-            self.nextCharacter()
 
-        # check for name
+                    symbol.id = number
+            elif type(number) == float:
+                self.error_location()
+                
+                raise SyntaxError("Invalid number: only integers allowed")
+            self.advance()
+
+        # identify alphanumerical sequences as either keywords if in keywords
+        # list, or as a name otherwise
         elif self.current_character.isalpha():
-            self.getName()
+            self.get_name()
 
             if self.string in self.keywords_list:
                 symbol.type = self.KEYWORD
@@ -226,23 +242,25 @@ class Scanner:
         else:
             symbol.type = self.SPECIAL
             symbol.id = self.names.lookup(self.string)
-            # self.errorPosition()
+            # self.error_location()
             # raise SyntaxError("Error: invalid symbol")
 
         # try:
         #     print(self.names.get_name_string(symbol.id))
-        # except:
+        # except Exception:
         #     print(self.string)
-
+        
+        symbol.position = self.character_number
+        symbol.line = self.line_number
         self.symbol_number += 1
 
         return symbol
 
-    def nextCharacter(self):
-        """Looks at the next character
-        and increases the character and line counters
-        as necessary"""
+    def advance(self):
+        """Look at the next character.
 
+        Increase the character and line counters as necessary
+        """
         self.current_character = self.input_file.read(1)
         self.character_number += 1
 
@@ -250,24 +268,22 @@ class Scanner:
             self.line_number += 1
             self.character_number = self.symbol_number = 0
 
-    def skip_space(self):
-        """"Skip spaces to next character"""
+    def skip_spaces(self):
+        """Skip any whitespace to return the next non-space character."""
         while self.current_character.isspace():
-            self.nextCharacter()
+            self.advance()
 
-    def getName(self):
-        """Return the next name string in the input file"""
-
+    def get_name(self):
+        """Return the next keyword or name string in the input file."""
         name = ""
 
         while self.current_character.isalnum():
             name = name + self.current_character
-            self.nextCharacter()
+            self.advance()
         self.string = name
 
-    def getNumber(self):
-        """Returns the next number in the input file"""
-
+    def get_number(self):
+        """Return the next number in the input file."""
         number = ""
         current_position = self.input_file.tell()
 
@@ -279,19 +295,24 @@ class Scanner:
         self.input_file.seek(current_position)
         return int(number)
 
-    def errorPosition(self):
-        """To be called by the parser and in some cases within the scanner
-        in case of an error. Returns the erroneous line and a pointer in
-        the following line pointing to the erroneous character"""
+    def error_location(self):
+        """For basic error handling.
 
+        To be called by the parser and in some cases within the scanner
+        in case of an error. Returns the erroneous line and a pointer
+        in the following line pointing to the erroneous character
+        """
         current_position = self.input_file.tell()
         pointer = ""
-        for i in range(self.character_number):
+        for i in range(self.character_number-2):
             pointer += " "
         pointer += "^"
 
-        error_message = \
-            self.input_file.readlines()[self.line_number - 1], pointer
+        f = open(self.address, 'r')
+        error_message = "Line {line}:".format(line=str(self.line_number+1)), f.readlines()[self.line_number], pointer
+        
         self.input_file.seek(current_position)
+                
+        self.scanner_error_count += 1
 
         return error_message

@@ -1,0 +1,19 @@
+DEVICES:
+D1 is DTYPE,
+D2 is DTYPE,
+D3 is DTYPE,
+C1 is CLOCK with 1 cycle period,
+G1 is AND with 2 inputs,
+SW1 is SWITCH with state 1;
+
+CONNECTIONS:
+C1 to D1.CLK,
+C1 to D2.CLK,
+C1 to D3.CLK,
+G1 to D3.DATA,
+D1.Q to D2.DATA,
+D1.Q to G1.I1,
+D2.Q to G1.I2,
+SW1 to D1.DATA;
+
+MONITOR D1.Q and D2.Q and D3.Q;

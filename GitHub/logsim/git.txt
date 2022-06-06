@@ -1,0 +1,51 @@
+[dhcp-10-248-19-201:~/GitHub/logsim] omarzaman% git log --author="<omz20@cam.ac.uk>"
+commit 324622b28259222f37eacb71881c553f86c5e9aa (HEAD -> main, origin/main)
+Merge: 19197d0 4dc70a6
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Thu Jun 2 01:49:13 2022 +0100
+
+    Merge branch 'main' of https://github.com/omar-zaman10/GF2 into main
+
+commit 19197d015a61c1be48bbf44822b22e0b4bc1f11b
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Thu Jun 2 01:48:58 2022 +0100
+
+    fData Gui
+
+commit a8b7d9a998a134fd7fdb3409365a2f31613358ea
+Merge: 0905933 28dcdf0
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Wed Jun 1 17:20:43 2022 +0100
+
+    Merge branch 'main' of https://github.com/omar-zaman10/GF2 into main
+
+commit 09059339d748430050e6bcf69e6f1293cdf2f524
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Wed Jun 1 17:20:33 2022 +0100
+
+    Run and Quit button update
+
+commit 63304d08580908a479a6a248d573234df00e475d
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Wed Jun 1 16:13:34 2022 +0100
+
+    GUI front end completed
+
+commit 513385e9a85708bcfbd03f3cd0b0ef5d7119689e
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Tue May 31 00:48:01 2022 +0100
+
+    Start of Gui
+
+commit 4ad3ef121eb3fd7e7bfec87e05afe3145b37587c
+Merge: 019fef4 788f977
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Thu May 26 00:21:49 2022 +0100
+
+    Merge branch 'main' of https://github.com/omar-zaman10/GF2 into main
+
+commit 019fef413b90dcdf9564285dacb66346944aa595
+Author: Omar Zaman <omz20@cam.ac.uk>
+Date:   Wed May 25 23:56:05 2022 +0100
+
+    names module update
