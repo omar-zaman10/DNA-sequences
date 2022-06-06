@@ -58,6 +58,7 @@ class Parser:
         self.input_id = 0
         self.input_device_id = 0
         self.output_device_id = 0
+        self.input_no = 0
         self.devices_symbol_list = []
         self.input_added = False
         self.output_added = False
@@ -105,7 +106,6 @@ class Parser:
                 self.defining = True
                 self.device_error = False
                 self.devices_list()
-                pdb.set_trace()
                 self.defining = False
                 self.devices_instance += 1
                 if self.devices_instance > 1:
@@ -116,7 +116,6 @@ class Parser:
                 self.connecting = True
                 self.connection_error = False
                 self.connections_list()
-                pdb.set_trace()
                 self.connecting = False
                 self.connections_instance += 1
                 if self.connections_instance > 1:
@@ -410,7 +409,7 @@ class Parser:
     #            and (self.symbol.type == self.scanner.NAME
     #                 or self.symbol.type == self.scanner.KEYWORD)
 
-    def name(self):  # FIX ERROR HANDLING
+    def name(self):
         """name = character, {character|digit};"""
         if self.symbol.type == self.scanner.NAME:
             name_id = self.get_id(self.symbol)
@@ -569,7 +568,7 @@ class Parser:
                 self.error("NO_MONITOR_DEF", [(self.scanner.EOF, False)])
                 self.monitor_error = True
             else:
-                self.output_id = self.get_id(self.symbol)
+                #self.output_id = self.get_id(self.symbol)
                 self.output_added = self.devices.add_input(self.input_device_id,
                                                            self.output_id)
 
@@ -961,7 +960,7 @@ class Parser:
         """boolean_input = "I", number_inputs;"""
         characters = [c for c in self.scanner.string]
         if 1 <= int(characters[1]) <= 16:
-            self.input_id = self.get_id(self.symbol)
+            #self.input_id = self.get_id(self.symbol)
             self.input_added = self.devices.add_input(self.input_device_id,
                                                       self.input_id)
             self.symbol = self.scanner.get_symbol()
@@ -979,7 +978,7 @@ class Parser:
 
     def dtype_input(self):
         """dtype_input = ("DATA" | "CLK" | "SET" | "CLEAR");"""
-        self.input_id = self.get_id(self.symbol)
+        #self.input_id = self.get_id(self.symbol)
         self.input_added = self.devices.add_input(self.input_device_id,
                                                   self.input_id)
         self.symbol = self.scanner.get_symbol()
@@ -990,7 +989,7 @@ class Parser:
 
     def dtype_output(self):
         """dtype_output = ("Q" | "QBAR");"""
-        self.output_id = self.get_id(self.symbol)
+        #self.output_id = self.get_id(self.symbol)
         self.output_added = self.devices.add_input(self.input_device_id,
                                                    self.output_id)
         self.symbol = self.scanner.get_symbol()
@@ -1029,7 +1028,6 @@ class Parser:
 
     def get_id(self, device_name):
         symbol_id = device_name.id
-
         if self.defining:
             if symbol_id not in self.devices_symbol_list:
                 self.devices_symbol_list.append(symbol_id)
@@ -1041,12 +1039,20 @@ class Parser:
                 self.device_error = True
                 return None
 
-        elif self.connecting:
-            if symbol_id in self.devices_symbol_list:
-                device_id = self.devices_symbol_list.index(symbol_id)
-                return device_id
+    def get_input_id(self, device_id):
+        if device_id in self.devices_symbol_list:
+            input_numbers = self.devices_symbol_list[device_id]
+            if input_numbers is None:
+                self.input_no = 1
             else:
-                self.error("NO_DEVICE", [(None, False)])
-                self.id_error = True
-                self.connection_error = True
-                return None
+                self.input_no += 1
+            self.devices_symbol_list[device_id].append()
+            pdb.set_trace()
+            return self.input_no
+        else:
+            self.error("NO_DEVICE", [(None, False)])
+            self.id_error = True
+            self.connection_error = True
+            return None
+
+
