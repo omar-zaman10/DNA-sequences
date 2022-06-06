@@ -96,6 +96,9 @@ class Parser:
             return False
 
         while self.symbol.type != self.scanner.EOF:
+            self.device_error = False
+            self.connection_error = False
+            self.monitor_error = False
             if self.symbol.type == self.scanner.KEYWORD \
                     and self.symbol.id == self.scanner.DEVICES_ID:
                 self.defining = True
