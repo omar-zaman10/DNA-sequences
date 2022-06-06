@@ -6,7 +6,6 @@ import wx.lib.scrolledpanel as scrolled
 from devices import Device
 from monitors import Monitors
 from network import Network
-import sys
 
 
 
@@ -180,7 +179,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        #self.render_text(text, 10, 10)
 
         # Draw a sample signal trace
 
@@ -445,7 +444,56 @@ class Gui(wx.Frame):
                 )
             )
 
-        # self.panel.Bind(wx.EVT_PAINT, self.OnPaint)
+         # Connections Panel
+
+        self.panel_connections = wx.Panel(self, wx.ID_ANY, pos=(450, 50), size=(400, 175))
+        #self.panel_connections.SetBackgroundColour('White)
+
+        self.text = wx.StaticText(
+                self.panel_connections,
+                wx.ID_ANY,
+                'Connections',
+                pos=(100,15),
+            )
+
+        self.Gate_choices1 = wx.Choice(
+            self.panel_connections,
+            wx.ID_ANY,
+            choices=['gate1','gate2'],
+            pos=(150, 50),
+        )
+
+        self.Input_choices1 = wx.Choice(
+            self.panel_connections,
+            wx.ID_ANY,
+            choices=['input1','input2'],
+            pos=(250, 50),
+        )
+
+        self.text = wx.StaticText(
+                self.panel_connections,
+                wx.ID_ANY,
+                'Connect Input Pin',
+                pos=(25, 50),
+            )
+
+        self.text = wx.StaticText(
+                self.panel_connections,
+                wx.ID_ANY,
+                'To Output pin',
+                pos=(25, 100),
+            )
+
+        self.Output_choices1 = wx.Choice(
+            self.panel_connections,
+            wx.ID_ANY,
+            choices=['output1','output2'],
+            pos=(150, 100),
+        )
+
+        self.connections_button = wx.Button(
+            self.panel_connections, wx.ID_ANY, "Make Connection", pos=(250,100)
+        )
 
         # Configure the widgets
 
@@ -576,7 +624,7 @@ class Gui(wx.Frame):
         self.number_of_cycles = val
 
         self.canvas.data = [
-            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles)]
+            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
             for j in range(len(self.canvas.added_monitor_list))
         ]
         self.canvas.render(text)
@@ -590,7 +638,7 @@ class Gui(wx.Frame):
 
         # self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
         self.canvas.data = [
-            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles)]
+            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
             for j in range(len(self.canvas.added_monitor_list))
         ]
         self.canvas.render(text)
