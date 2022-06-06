@@ -33,8 +33,8 @@ class Symbol:
         
         self.type = None
         self.id = None
-        self.position = None
         self.line = None
+        self.position = None
 
 
 class Scanner:
@@ -75,9 +75,9 @@ class Scanner:
 
         self.names = names
 
-        self.symbol_type_list = [self.PUNCTUATION, self.KEYWORD, self.NAME,
-                                 self.INTEGER, self.INT16, self.EOF,
-                                 self.SPECIAL] = range(7)
+        self.symbol_type_list = [self.PUNCTUATION, self.KEYWORD,
+                                 self.NAME, self.INTEGER, self.INT16, 
+                                 self.EOF, self.SPECIAL] = range(7)
 
         self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
@@ -211,9 +211,12 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
-                    symbol.id = number
+                    
+                    symbol.id = self.names.query(number)
+                    # symbol.id = self.names.lookup(number)
             elif type(number) == float:
                 self.error_location()
+
                 raise SyntaxError("Invalid number: only integers allowed")
             self.advance()
 
@@ -281,7 +284,9 @@ class Scanner:
 
         while self.current_character.isdigit():
             number = number + self.current_character
+            current_position = self.input_file.tell()
             self.advance()
+
 
         self.input_file.seek(current_position)
         return int(number)
