@@ -6,7 +6,6 @@ import wx.lib.scrolledpanel as scrolled
 from devices import Device
 from monitors import Monitors
 from network import Network
-import sys
 
 
 
@@ -180,7 +179,7 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
         # Draw specified text at position (10, 10)
-        self.render_text(text, 10, 10)
+        #self.render_text(text, 10, 10)
 
         # Draw a sample signal trace
 
@@ -576,7 +575,7 @@ class Gui(wx.Frame):
         self.number_of_cycles = val
 
         self.canvas.data = [
-            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles)]
+            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
             for j in range(len(self.canvas.added_monitor_list))
         ]
         self.canvas.render(text)
@@ -590,7 +589,7 @@ class Gui(wx.Frame):
 
         # self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
         self.canvas.data = [
-            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles)]
+            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
             for j in range(len(self.canvas.added_monitor_list))
         ]
         self.canvas.render(text)
