@@ -8,7 +8,6 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
-
 import names
 import dataclasses
 import pdb
@@ -31,6 +30,7 @@ class Symbol:
 
     def __init__(self):
         """Initialise symbol properties."""
+        
         self.type = None
         self.id = None
         self.position = None
@@ -65,7 +65,6 @@ class Scanner:
             f.write(path)
             f.close()
             self.input_file = open("test_file.txt", "r")
-            self.address = "test_file.txt"
         else:
             try:
                 self.input_file = open(path, "r")
@@ -113,10 +112,10 @@ class Scanner:
         self.symbol_number = 0
         self.scanner_error_count = 0
         self.string = ""
+        self.address = path
 
     def get_symbol(self):
         """Translate the next sequence of characters into a symbol.
-
         Symbols to be passed requested by the parser
         """
         symbol = Symbol()  # create instance of the symbol class
@@ -161,7 +160,6 @@ class Scanner:
             self.advance()
             while self.current_character != "\n":
                 # print(self.current_character)
-                # prints comment i.e. characters after '#' until end of line
                 symbol.type = self.PUNCTUATION
                 self.advance()
 
@@ -233,10 +231,10 @@ class Scanner:
             # print(self.string)
 
         else:
-            symbol.type == self.SPECIAL
+            symbol.type = self.SPECIAL
             symbol.id = self.names.lookup(self.string)
-            self.error_location()
-            raise SyntaxError("Error: invalid character")
+            # self.error_location()
+            # raise SyntaxError("Error: invalid character")
 
         # try:
         #     print(self.names.get_name_string(symbol.id))
@@ -294,24 +292,17 @@ class Scanner:
         in case of an error. Returns the erroneous line and a pointer
         in the following line pointing to the erroneous character
         """
-        #current_position = self.input_file.tell()
+        current_position = self.input_file.tell()
         pointer = ""
-        for i in range(self.character_number):
+        for i in range(self.character_number-3):
             pointer += " "
-
         pointer += "^"
 
+        f = open(self.address, 'r')
+        error_message = "Line {line}:".format(line=str(self.line_number+1)), f.readlines()[self.line_number], pointer
+
+        self.input_file.seek(current_position)
+        
         self.scanner_error_count += 1
-
-        """Returns the erroneous line to the console, with a pointer in
-        the next line to show poisiton of error"""
-
-        error_message = \
-            self.input_file.readlines()[self.line_number], pointer
         
-        #self.input_file.seek(current_position)
-        
-
-        #return self.input_file.readlines()[self.line_number - 1], pointer
-
         return error_message
