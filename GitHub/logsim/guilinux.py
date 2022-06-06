@@ -446,28 +446,28 @@ class Gui(wx.Frame):
 
          # Connections Panel
 
-        self.panel_connections = wx.Panel(self, wx.ID_ANY, pos=(450, 50), size=(400, 175))
+        self.panel_connections = wx.Panel(self, wx.ID_ANY, pos=(425, 50), size=(400, 175))
         #self.panel_connections.SetBackgroundColour('White)
 
         self.text_connections = wx.StaticText(
                 self.panel_connections,
                 wx.ID_ANY,
                 'Connections',
-                pos=(100,15),
+                pos=(125,15),
             )
 
         self.Gate_choices1 = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
             choices=['gate1','gate2'],
-            pos=(150, 50),
+            pos=(175, 50),
         )
 
         self.Input_choices1 = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
             choices=['input1','input2'],
-            pos=(250, 50),
+            pos=(275, 50),
         )
 
         self.text_input_pins = wx.StaticText(
@@ -488,11 +488,11 @@ class Gui(wx.Frame):
             self.panel_connections,
             wx.ID_ANY,
             choices=['output1','output2'],
-            pos=(150, 100),
+            pos=(175, 100),
         )
 
         self.connections_button = wx.Button(
-            self.panel_connections, wx.ID_ANY, "Make Connection", pos=(250,100)
+            self.panel_connections, wx.ID_ANY, "Make Connection", pos=(275,100)
         )
 
         # Configure the widgets
