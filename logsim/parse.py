@@ -59,14 +59,12 @@ class Parser:
         self.input_id = 0
         self.input_device_id = 0
         self.output_device_id = 0
-        self.input_no = 0
 
         self.switch_input = 0
         self.clock_cycle = 0
         self.no_inputs = 0
 
         self.devices_symbol_list = []
-        self.device_id_dict = {}
         self.device_input_dict = {}
         self.device_output_dict = {}
 
@@ -606,8 +604,6 @@ class Parser:
                 self.and_gate()
             elif self.symbol.id == self.scanner.NAND_ID:
                 self.nand_gate()
-                if self.device_error is False:
-                    self.devices.add_device(self.device_id, self.devices.NAND)
             elif self.symbol.id == self.scanner.OR_ID:
                 self.or_gate()
             elif self.symbol.id == self.scanner.NOR_ID:
@@ -1081,14 +1077,14 @@ class Parser:
 
     def device_dictionary(self):
         for symbol_id in self.devices_symbol_list:
-            self.device_id_dict[symbol_id] = []
+            self.device_input_dict[symbol_id] = []
+            self.device_output_dict[symbol_id] = []
 
     def get_input_id(self, device_name_id):
-        self.device_input_dict = self.device_id_dict
         input_numbers = self.device_input_dict[device_name_id]
         if not input_numbers:
             self.device_input_dict[device_name_id].append(self.symbol.id)
-            return self.input_no
+            return self.symbol.id
         if self.symbol.id not in input_numbers:
             self.device_input_dict[device_name_id].append(self.symbol.id)
         else:
@@ -1097,11 +1093,10 @@ class Parser:
             self.connection_error = True
 
     def get_output_id(self, device_name_id):
-        self.device_output_dict = self.device_id_dict
         output_numbers = self.device_output_dict[device_name_id]
         if not output_numbers:
             self.device_output_dict[device_name_id].append(self.symbol.id)
-            return self.input_no
+            return self.symbol.id
         if self.symbol.id not in output_numbers:
             self.device_output_dict[device_name_id].append(self.symbol.id)
         else:
