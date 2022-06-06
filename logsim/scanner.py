@@ -8,10 +8,12 @@ Classes
 Scanner - reads definition file and translates characters into symbols.
 Symbol - encapsulates a symbol and stores its properties.
 """
+import names
 import dataclasses
 import pdb
 import sys
 import parse
+import os 
 
 
 class Symbol:
@@ -31,8 +33,8 @@ class Symbol:
 
         self.type = None
         self.id = None
-        # self.line = None
-        # self.position = None
+        self.line = None
+        self.position = None
 
 
 class Scanner:
@@ -54,15 +56,22 @@ class Scanner:
                       and returns the symbol.
     """
 
-    def __init__(self, path, names):
+    def __init__(self, path, names, test_string=False):
         """Open specified file and initialise reserved words and IDs."""
-
-        try:
-            self.input_file = open(path, 'r')
-        except FileNotFoundError:
-            raise \
-                FileNotFoundError("Error: File doesn't "
-                                  "exist in current directory")
+        if test_string:
+            if os.path.exists("test_file.txt"):
+                os.remove("test_file.txt")
+            f = open("test_file.txt", "a")
+            f.write(path)
+            f.close()
+            self.input_file = open("test_file.txt", "r")
+        else:
+            try:
+                self.input_file = open(path, 'r')
+            except FileNotFoundError:
+                raise FileNotFoundError(
+                    "Error: File doesn't exist in current directory"
+                )
 
         self.names = names
 
@@ -72,89 +81,87 @@ class Scanner:
 
         self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
-        [self.SEMICOLON, self.COLON, self.FULLSTOP,
-         self.COMMA, self.HASHTAG, self.NEWLINE, self.EOF_ID] = \
-            self.names.lookup(self.punctuation_list)
+        [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA,
+         self.HASHTAG, self.NEWLINE, self.EOF_ID] = self.names.lookup(self.punctuation_list)
 
-        self.numbers_list = ['0', '1', '2', '3', '4', '5', '6',
-                             '7', '8', '9', '10', '11', '12',
-                             '13', '14', '15', '16']
+        self.numbers_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+                             '10', '11', '12', '13', '14', '15', '16']
 
-        [self.ZERO, self.ONE, self.TWO, self.THREE, self.FOUR,
-         self.FIVE, self.SIX, self.SEVEN, self.EIGHT, self.NINE,
-         self.TEN, self.ELEVEN, self.TWELVE, self.THIRTEEN,
-         self.FOURTEEN, self.FIFTEEN, self.SIXTEEN] = \
-            self.names.lookup(self.numbers_list)
+        [
+         self.ZERO, self.ONE, self.TWO, self.THREE, self.FOUR, self.FIVE,
+         self.SIX, self.SEVEN, self.EIGHT, self.NINE, self.TEN, self.ELEVEN,
+         self.TWELVE, self.THIRTEEN, self.FOURTEEN, self.FIFTEEN, self.SIXTEEN,
+        ] = self.names.lookup(self.numbers_list)
 
-        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR",
-                              "END", "to", "is", "SWITCH", "with",
-                              "state", "and", "CLOCK", "cycle",
-                              "period", "AND", "NAND", "OR", "NOR",
-                              "DTYPE", "XOR", "input", "inputs",
-                              "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
+        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END", "to",
+                              "is", "SWITCH", "with", "state", "and", "CLOCK",
+                              "cycle", "period", "AND", "NAND", "OR", "NOR",
+                              "DTYPE", "XOR", "NOT", "input", "inputs", "I",
+                              "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
 
-        [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID,
-         self.END_ID, self.TO, self.IS, self.SWITCH_ID,
-         self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE,
-         self.PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID,
-         self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.INPUT,
-         self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
-         self.CLEAR, self.Q, self.QBAR] = \
-            self.names.lookup(self.keywords_list)
+        [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID,
+         self.TO, self.IS, self.SWITCH_ID, self.WITH, self.STATE, self.AND,
+         self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID,
+         self.OR_ID, self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.NOT_ID,
+         self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
+         self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
 
         self.current_character = " "
-        self.line_number = 0
         self.character_number = 0
+        self.line_number = 0
         self.symbol_number = 0
+        self.scanner_error_count = 0
         self.string = ""
+        self.address = path
 
     def get_symbol(self):
-        """Translate the next sequence of
-        characters into a symbol for the parser"""
-
-        symbol = Symbol()
-        self.skip_space()
+        """Translate the next sequence of characters into a symbol.
+        Symbols to be passed requested by the parser
+        """
+        symbol = Symbol()  # create instance of the symbol class
+        self.skip_spaces()  # current character is now now whitespace
 
         # check for punctuation (semicolon, colon, full stop, comma)
         if self.current_character == ';':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
+            # print(";")
 
         elif self.current_character == ':':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(":")
 
         elif self.current_character == '.':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(".")
 
         elif self.current_character == ",":
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
             # print(",")
 
         # check for new line
         elif self.current_character == '\n':
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
-            self.nextCharacter()
+            self.advance()
 
         # check for comments
         elif self.current_character == "#":
             symbol.type = self.PUNCTUATION
             symbol.id = self.names.query(self.current_character)
             # print("#")
-            self.nextCharacter()
+            self.advance()
             while self.current_character != '\n':
                 # print(self.current_character)
                 symbol.type = self.PUNCTUATION
-                self.nextCharacter()
+                self.advance()
 
         # check for end of line
         elif self.current_character == "":
@@ -164,7 +171,7 @@ class Scanner:
 
         # check for integers, in particular 1-16 for gate input allocation
         elif self.current_character.isdigit():
-            number = self.getNumber()
+            number = self.get_number()
             if type(number) == int:
                 if 0 <= number <= 16:
                     symbol.type = self.INT16
@@ -204,14 +211,15 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
-            elif type(symbol.id) == float:
-                self.errorPosition()
+            elif type(number) == float:
+                self.error_location()
                 raise SyntaxError("Invalid number: only integers allowed")
-            self.nextCharacter()
+            self.advance()
 
-        # check for name
+        # identify alphanumerical sequences as either keywords if in keywords
+        # list, or as a name otherwise
         elif self.current_character.isalpha():
-            self.getName()
+            self.get_name()
 
             if self.string in self.keywords_list:
                 symbol.type = self.KEYWORD
@@ -225,23 +233,25 @@ class Scanner:
         else:
             symbol.type = self.SPECIAL
             symbol.id = self.names.lookup(self.string)
-            # self.errorPosition()
+            # self.error_location()
             # raise SyntaxError("Error: invalid symbol")
 
         # try:
         #     print(self.names.get_name_string(symbol.id))
-        # except:
+        # except Exception:
         #     print(self.string)
-
+        
+        symbol.position = self.character_number
+        symbol.line = self.line_number
         self.symbol_number += 1
 
         return symbol
 
-    def nextCharacter(self):
-        """Looks at the next character
-        and increases the character and line counters
-        as necessary"""
+    def advance(self):
+        """Look at the next character.
 
+        Increase the character and line counters as necessary
+        """
         self.current_character = self.input_file.read(1)
         self.character_number += 1
 
@@ -249,47 +259,50 @@ class Scanner:
             self.line_number += 1
             self.character_number = self.symbol_number = 0
 
-    def skip_space(self):
-        """"Skip spaces to next character"""
+    def skip_spaces(self):
+        """Skip any whitespace to return the next non-space character."""
         while self.current_character.isspace():
-            self.nextCharacter()
+            self.advance()
 
-    def getName(self):
-        """Return the next name string in the input file"""
-
+    def get_name(self):
+        """Return the next keyword or name string in the input file."""
         name = ""
 
         while self.current_character.isalnum():
             name = name + self.current_character
-            self.nextCharacter()
+            self.advance()
         self.string = name
 
-    def getNumber(self):
-        """Returns the next number in the input file"""
-
+    def get_number(self):
+        """Return the next number in the input file."""
         number = ""
         current_position = self.input_file.tell()
 
         while self.current_character.isdigit():
             number = number + self.current_character
-            self.nextCharacter()
+            self.advance()
 
         self.input_file.seek(current_position)
         return int(number)
 
-    def errorPosition(self):
-        """To be called by the parser and in some cases within the scanner
-        in case of an error. Returns the erroneous line and a pointer in
-        the following line pointing to the erroneous character"""
+    def error_location(self):
+        """For basic error handling.
 
+        To be called by the parser and in some cases within the scanner
+        in case of an error. Returns the erroneous line and a pointer
+        in the following line pointing to the erroneous character
+        """
         current_position = self.input_file.tell()
         pointer = ""
-        for i in range(self.character_number):
+        for i in range(self.character_number-2):
             pointer += " "
         pointer += "^"
 
-        error_message = \
-            self.input_file.readlines()[self.line_number - 1], pointer
+        f = open(self.address, 'r')
+        error_message = "Line {line}:".format(line=str(self.line_number+1)), f.readlines()[self.line_number], pointer
+        
         self.input_file.seek(current_position)
+                
+        self.scanner_error_count += 1
 
         return error_message
