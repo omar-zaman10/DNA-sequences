@@ -81,30 +81,36 @@ class Scanner:
 
         self.punctuation_list = [";", ":", ".", ",", "#", "\n", ""]
 
-        [self.SEMICOLON, self.COLON, self.FULLSTOP, self.COMMA,
-         self.HASHTAG, self.NEWLINE, self.EOF_ID] = self.names.lookup(self.punctuation_list)
+        [self.SEMICOLON, self.COLON, self.FULLSTOP,
+         self.COMMA, self.HASHTAG, self.NEWLINE, self.EOF_ID] = \
+            self.names.lookup(self.punctuation_list)
 
-        self.numbers_list = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
-                             '10', '11', '12', '13', '14', '15', '16']
+        self.numbers_list = ['0', '1', '2', '3', '4', '5', '6',
+                             '7', '8', '9', '10', '11', '12',
+                             '13', '14', '15', '16']
 
-        [
-         self.ZERO, self.ONE, self.TWO, self.THREE, self.FOUR, self.FIVE,
-         self.SIX, self.SEVEN, self.EIGHT, self.NINE, self.TEN, self.ELEVEN,
-         self.TWELVE, self.THIRTEEN, self.FOURTEEN, self.FIFTEEN, self.SIXTEEN,
-        ] = self.names.lookup(self.numbers_list)
+        [self.ZERO, self.ONE, self.TWO, self.THREE, self.FOUR,
+         self.FIVE, self.SIX, self.SEVEN, self.EIGHT, self.NINE,
+         self.TEN, self.ELEVEN, self.TWELVE, self.THIRTEEN,
+         self.FOURTEEN, self.FIFTEEN, self.SIXTEEN] = \
+            self.names.lookup(self.numbers_list)
 
-        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR", "END", "to",
-                              "is", "SWITCH", "with", "state", "and", "CLOCK",
-                              "cycle", "period", "AND", "NAND", "OR", "NOR",
-                              "DTYPE", "XOR", "NOT", "input", "inputs", "I",
-                              "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
+        self.keywords_list = ["DEVICES", "CONNECTIONS", "MONITOR",
+                              "END", "to", "is", "SWITCH", "with",
+                              "state", "and", "CLOCK", "cycle",
+                              "period", "AND", "NAND", "OR", "NOR",
+                              "DTYPE", "XOR", "NOT", "input", "inputs",
+                              "I", "DATA", "CLK", "SET", "CLEAR", "Q", "QBAR"]
 
-        [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID, self.END_ID,
-         self.TO, self.IS, self.SWITCH_ID, self.WITH, self.STATE, self.AND,
-         self.CLOCK_ID, self.CYCLE, self.PERIOD, self.AND_ID, self.NAND_ID,
-         self.OR_ID, self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.NOT_ID,
-         self.INPUT, self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
-         self.CLEAR, self.Q, self.QBAR] = self.names.lookup(self.keywords_list)
+        [self.DEVICES_ID, self.CONNECTIONS_ID, self.MONITOR_ID,
+         self.END_ID, self.TO, self.IS, self.SWITCH_ID,
+         self.WITH, self.STATE, self.AND, self.CLOCK_ID, self.CYCLE,
+         self.PERIOD, self.AND_ID, self.NAND_ID, self.OR_ID,
+         self.NOR_ID, self.DTYPE_ID, self.XOR_ID, self.NOT_ID, self.INPUT,
+         self.INPUTS, self.I, self.DATA, self.CLK, self.SET,
+         self.CLEAR, self.Q, self.QBAR] = \
+            self.names.lookup(self.keywords_list)
+
 
         self.current_character = " "
         self.character_number = 0
@@ -211,9 +217,11 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
+
                     symbol.id = number
             elif type(number) == float:
                 self.error_location()
+                
                 raise SyntaxError("Invalid number: only integers allowed")
             self.advance()
 
@@ -281,7 +289,8 @@ class Scanner:
 
         while self.current_character.isdigit():
             number = number + self.current_character
-            self.advance()
+            current_position = self.input_file.tell()
+            self.nextCharacter()
 
         self.input_file.seek(current_position)
         return int(number)
