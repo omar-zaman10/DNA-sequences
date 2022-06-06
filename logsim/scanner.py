@@ -211,6 +211,7 @@ class Scanner:
                         symbol.id = self.SIXTEEN
                 else:
                     symbol.type = self.INTEGER
+                    symbol.id = number
             elif type(number) == float:
                 self.error_location()
                 raise SyntaxError("Invalid number: only integers allowed")

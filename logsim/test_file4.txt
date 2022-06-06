@@ -5,7 +5,7 @@ G3 is NAND with 2 inputs,
 G4 is NAND with 2 inputs,
 SW1 is SWITCH with state 1,
 SW2 is SWITCH with state 0,
-C1 is CLOCK with 1 cycle period;
+C1 is CLOCK with 13 cycle period;
 
 CONNECTIONS:
 SW1 to G1.I1,
