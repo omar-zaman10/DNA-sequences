@@ -147,8 +147,8 @@ class Parser:
                 break
 
         if (self.devices_instance != 1 or
-                self.connections_instance != 1 or
-                self.monitoring_instance != 1) and self.id_error is False:
+            self.connections_instance != 1 or
+            self.monitoring_instance != 1) and self.id_error is False:
             print("Error: Not all sections present")
             self.error_count += 1
 
@@ -345,6 +345,7 @@ class Parser:
                     self.symbol = self.scanner.get_symbol()
                     if self.monitor_error is False:
                         self.output()
+                        error_type = self.monitors.make_monitor(self.output_device_id, self.output_id)
                         if self.symbol.type == self.scanner.EOF:
                             break
                     else:
@@ -457,10 +458,12 @@ class Parser:
             self.symbol = self.scanner.get_symbol()
             self.input()
             if self.connection_error is False:
-                error_type = self.network.make_connection(self.output_device_id,
-                                                          self.output_id,
-                                                          self.input_device_id,
-                                                          self.input_id)
+                error_type = self.network.make_connection(self.input_device_id,
+                                                          self.input_id,
+                                                          self.output_device_id,
+                                                          self.output_id)
+                # if error_type != self.devices.NO_ERROR:
+                #     self.error("NO_CONNECTION", (self.scanner.EOF, False))
                 if self.symbol.type == self.scanner.PUNCTUATION \
                         and self.symbol.id == self.scanner.COMMA:
                     self.symbol = self.scanner.get_symbol()
@@ -505,7 +508,6 @@ class Parser:
                 if self.symbol.type == self.scanner.NAME \
                         and characters[0] == "I":
                     self.boolean_input()
-                    print(self.devices.get_signal_name(self.input_device_id, self.input_id))
                 elif self.symbol.type == self.scanner.KEYWORD \
                         and (self.symbol.id == self.scanner.DATA or
                              self.symbol.id == self.scanner.CLK or
@@ -580,12 +582,12 @@ class Parser:
             else:
                 if self.connecting:
                     self.output_id = self.output_device_id
-                    self.output_added = self.devices.add_input(self.output_device_id,
-                                                               self.output_id)
+                    self.output_added = self.devices.add_output(self.output_device_id,
+                                                                self.output_id)
                     if self.output_added is False:
                         print("Output not added")
-                # elif self.monitoring:
-                #
+                elif self.monitoring:
+                    self.output_id = self.output_device_id
 
     # @pytest.fixture
     # def test_name(self):
@@ -1015,10 +1017,10 @@ class Parser:
         """dtype_output = ("Q" | "QBAR");"""
         if self.connecting:
             self.output_id = self.get_output_id(self.output_device_id)
-            self.output_added = self.devices.add_input(self.output_device_id,
-                                                       self.output_id)
-        # elif self.monitoring:
-        #
+            self.output_added = self.devices.add_output(self.output_device_id,
+                                                        self.output_id)
+        elif self.monitoring:
+            self.output_id = self.get_output_id(self.output_device_id)
         if self.output_added is False:
             print("Output not added")
         self.symbol = self.scanner.get_symbol()
@@ -1061,19 +1063,19 @@ class Parser:
             if symbol_id not in self.devices_symbol_list:
                 self.devices_symbol_list.append(symbol_id)
                 return symbol_id
-            else:
-                self.error("DEVICE_EXISTS", [(None, False)])
-                self.id_error = True
-                self.device_error = True
-                return None
-        elif self.connecting:
+            # else:
+            #     self.error("DEVICE_EXISTS", [(None, False)])
+            #     self.id_error = True
+            #     self.device_error = True
+            #     return None
+        elif self.connecting or self.monitoring:
             if symbol_id in self.devices_symbol_list:
                 return symbol_id
-            else:
-                self.error("NO_DEVICE", [(None, False)])
-                self.id_error = True
-                self.connection_error = True
-                return None
+            # else:
+            #     self.error("NO_DEVICE", [(None, False)])
+            #     self.id_error = True
+            #     self.connection_error = True
+            #     return None
 
     def device_dictionary(self):
         for symbol_id in self.devices_symbol_list:
@@ -1082,24 +1084,20 @@ class Parser:
 
     def get_input_id(self, device_name_id):
         input_numbers = self.device_input_dict[device_name_id]
-        if not input_numbers:
-            self.device_input_dict[device_name_id].append(self.symbol.id)
-            return self.symbol.id
         if self.symbol.id not in input_numbers:
             self.device_input_dict[device_name_id].append(self.symbol.id)
-        else:
-            self.error("INPUT_USED", (None, False))
-            self.id_error = True
-            self.connection_error = True
+            return self.symbol.id
+        # else:
+        #     self.error("INPUT_USED", (None, False))
+        #     self.id_error = True
+        #     self.connection_error = True
 
     def get_output_id(self, device_name_id):
         output_numbers = self.device_output_dict[device_name_id]
-        if not output_numbers:
-            self.device_output_dict[device_name_id].append(self.symbol.id)
-            return self.symbol.id
         if self.symbol.id not in output_numbers:
             self.device_output_dict[device_name_id].append(self.symbol.id)
-        else:
-            self.error("INPUT_USED", (None, False))
-            self.id_error = True
-            self.connection_error = True
+            return self.symbol.id
+        # else:
+        #     self.error("INPUT_USED", (None, False))
+        #     self.id_error = True
+        #     self.connection_error = True
