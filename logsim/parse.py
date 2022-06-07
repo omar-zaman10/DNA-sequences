@@ -17,7 +17,7 @@ import pdb
 
 # self.type = None
 # self.id = None
-#import pytest
+import pytest
 
 
 class Parser:
@@ -67,6 +67,7 @@ class Parser:
         self.devices_symbol_list = []
         self.device_input_dict = {}
         self.device_output_dict = {}
+        self.monitored_outputs = []
 
         self.input_added = False
         self.output_added = False
@@ -236,6 +237,10 @@ class Parser:
             print("Error: Device name already used")
         elif error_type == "NO_DEVICE":
             print("Error: Device has not been defined")
+        elif error_type == "INPUT_USED":
+            print("Error: Input has already been connected")
+        elif error_type == "OUTPUT_MONITORED":
+            print("Error: Output is already being monitored")
 
         # error_message = self.scanner.errorPosition()
         # print(error_message[0], "\n", error_message[1])
@@ -462,8 +467,9 @@ class Parser:
                                                           self.input_id,
                                                           self.output_device_id,
                                                           self.output_id)
-                # if error_type != self.devices.NO_ERROR:
-                #     self.error("NO_CONNECTION", (self.scanner.EOF, False))
+                print(self.network.get_connected_output(self.input_device_id, self.input_id))
+                if error_type != self.network.NO_ERROR:
+                    self.error("NO_CONNECTION", (self.scanner.EOF, False))
                 if self.symbol.type == self.scanner.PUNCTUATION \
                         and self.symbol.id == self.scanner.COMMA:
                     self.symbol = self.scanner.get_symbol()
@@ -581,13 +587,19 @@ class Parser:
                 self.monitor_error = True
             else:
                 if self.connecting:
-                    self.output_id = self.output_device_id
+                    self.output_id = None
                     self.output_added = self.devices.add_output(self.output_device_id,
                                                                 self.output_id)
                     if self.output_added is False:
                         print("Output not added")
                 elif self.monitoring:
-                    self.output_id = self.output_device_id
+                    self.output_id = None
+                    if (self.output_device_id, self.output_id) in self.monitored_outputs:
+                        self.error("OUTPUT_MONITORED", [(self.scanner.EOF, False)])
+                        self.id_error = True
+                        self.monitor_error = True
+                    else:
+                        self.monitored_outputs.append((self.output_device_id, self.output_id))
 
     # @pytest.fixture
     # def test_name(self):
@@ -684,7 +696,7 @@ class Parser:
                 self.gate_error = True
             self.device_error = True
 
-    def clock(self):
+    def clock(self): #FIX ERROR HANDLING FOR IF CONNECTIONS OR MONITOR ARE RETURNED
         """clock = "CLOCK with", digit, "cycle period";"""
         if self.symbol.type == self.scanner.KEYWORD \
                 and self.symbol.id == self.scanner.CLOCK_ID:
@@ -696,6 +708,8 @@ class Parser:
                         or self.symbol.type == self.scanner.INT16:
                     self.clock_cycle = int(self.names.get_name_string(self.symbol.id))
                     self.symbol = self.scanner.get_symbol()
+                    while self.symbol.type == self.scanner.INT16:
+                        self.symbol = self.scanner.get_symbol()
                     if self.symbol.type == self.scanner.KEYWORD \
                             and self.symbol.id == self.scanner.CYCLE:
                         self.symbol = self.scanner.get_symbol()
@@ -706,6 +720,7 @@ class Parser:
                             self.symbol = self.scanner.get_symbol()
                         else:
                             self.error("NO_CYCLE", [(self.scanner.COMMA, False),
+                                                    (self.scanner.SEMICOLON, False),
                                                     (self.scanner.CONNECTIONS_ID, False),
                                                     (self.scanner.MONITOR_ID, False)])
                             if self.symbol.id == self.scanner.COMMA:
@@ -714,6 +729,7 @@ class Parser:
                             self.device_error = True
                     else:
                         self.error("NO_CYCLE", [(self.scanner.COMMA, False),
+                                                (self.scanner.SEMICOLON, False),
                                                 (self.scanner.CONNECTIONS_ID, False),
                                                 (self.scanner.MONITOR_ID, False)])
                         if self.symbol.id == self.scanner.COMMA:
@@ -722,6 +738,7 @@ class Parser:
                         self.device_error = True
                 else:
                     self.error("NO_INTEGER", [(self.scanner.COMMA, False),
+                                              (self.scanner.SEMICOLON, False),
                                               (self.scanner.CONNECTIONS_ID, False),
                                               (self.scanner.MONITOR_ID, False)])
                     if self.symbol.id == self.scanner.COMMA:
@@ -730,6 +747,7 @@ class Parser:
                     self.device_error = True
             else:
                 self.error("NO_CLOCK", [(self.scanner.COMMA, False),
+                                        (self.scanner.SEMICOLON, False),
                                         (self.scanner.CONNECTIONS_ID, False),
                                         (self.scanner.MONITOR_ID, False)])
                 if self.symbol.id == self.scanner.COMMA:
@@ -738,6 +756,7 @@ class Parser:
                 self.device_error = True
         else:
             self.error("NO_CLOCK", [(self.scanner.COMMA, False),
+                                    (self.scanner.SEMICOLON, False),
                                     (self.scanner.CONNECTIONS_ID, False),
                                     (self.scanner.MONITOR_ID, False)])
             if self.symbol.id == self.scanner.COMMA:
@@ -1080,19 +1099,19 @@ class Parser:
             if symbol_id not in self.devices_symbol_list:
                 self.devices_symbol_list.append(symbol_id)
                 return symbol_id
-            # else:
-            #     self.error("DEVICE_EXISTS", [(None, False)])
-            #     self.id_error = True
-            #     self.device_error = True
-            #     return None
+            else:
+                self.error("DEVICE_EXISTS", [(self.scanner.EOF, False)])
+                self.id_error = True
+                self.device_error = True
+                return None
         elif self.connecting or self.monitoring:
             if symbol_id in self.devices_symbol_list:
                 return symbol_id
-            # else:
-            #     self.error("NO_DEVICE", [(None, False)])
-            #     self.id_error = True
-            #     self.connection_error = True
-            #     return None
+            else:
+                self.error("NO_DEVICE", [(self.scanner.EOF, False)])
+                self.id_error = True
+                self.connection_error = True
+                return None
 
     def device_dictionary(self):
         for symbol_id in self.devices_symbol_list:
@@ -1104,17 +1123,21 @@ class Parser:
         if self.symbol.id not in input_numbers:
             self.device_input_dict[device_name_id].append(self.symbol.id)
             return self.symbol.id
-        # else:
-        #     self.error("INPUT_USED", (None, False))
-        #     self.id_error = True
-        #     self.connection_error = True
+        else:
+            self.error("INPUT_USED", [(self.scanner.EOF, False)])
+            self.id_error = True
+            self.connection_error = True
 
     def get_output_id(self, device_name_id):
         output_numbers = self.device_output_dict[device_name_id]
         if self.symbol.id not in output_numbers:
             self.device_output_dict[device_name_id].append(self.symbol.id)
             return self.symbol.id
-        # else:
-        #     self.error("INPUT_USED", (None, False))
-        #     self.id_error = True
-        #     self.connection_error = True
+        else:
+            if self.monitoring:
+                if (device_name_id, self.symbol.id) in self.monitored_outputs:
+                    self.error("OUTPUT_MONITORED", [(self.scanner.EOF, False)])
+                    self.id_error = True
+                    self.monitor_error = True
+                else:
+                    self.monitored_outputs.append((device_name_id, self.symbol.id))
