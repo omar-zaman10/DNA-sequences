@@ -1,3 +1,5 @@
+#define devices#
+
 DEVICES:
 G1 is NAND with 2 inputs,
 G2 is NAND with 2 inputs,
@@ -7,8 +9,10 @@ SW1 is SWITCH with state 1,
 SW2 is SWITCH with state 0,
 C1 is CLOCK with 13 cycle period;
 
+#define connections#
+
 CONNECTIONS:
-SW1 to G1.I1,
+SW1 to G1.I1, 
 SW2 to G2.I2,
 C1 to G1.I2,
 C1 to G2.I1,
@@ -16,5 +20,7 @@ G1 to G3.I1,
 G2 to G4.I2,
 G3 to G4.I1,
 G4 to G3.I2;
+
+#define monitors#
 
 MONITOR G3 and G4;
