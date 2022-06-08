@@ -214,23 +214,8 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
 
-        # Draw specified text at position (10, 10)
-        #self.render_text(text, 10, 10)
+        signal_list_data =[]
 
-        # Draw a sample signal trace
-
-          # signal trace is blue   Colour
-
-        # Trace drawing
-
-        # Test trace data
-
-        # self.draw_trace()
-        # data  = [(i//5) % 2  for i in range(20)]
-
-        for device_id, output_id in self.monitors.monitors_dictionary:
-            signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
-            print(device_id, output_id,signal_list)
 
         if self.data:
 
@@ -248,14 +233,14 @@ class MyGLCanvas(wxcanvas.GLCanvas):
                     GL.glVertex2f(x_next, y)
                 GL.glEnd()
 
-            for tick in range(0,len(signal)+1,2):
-                x =20*tick +50
+            for tick in range(0,len(signal)//26+1,5):
+                x =26*tick +50
                 y = 290
-                self.render_text(str(tick//2), x, 290)
+                self.render_text(str(tick), x, 290)
 
-            for tick in range(0,len(signal)+1):
+            for tick in range(0,len(signal)//13+1):
                 GL.glBegin(GL.GL_LINE_STRIP)
-                x =20*tick +50
+                x =13*tick +50
                 y = 290
                 y_next = 280
                 GL.glVertex2f(x, y)
@@ -267,9 +252,9 @@ class MyGLCanvas(wxcanvas.GLCanvas):
             GL.glBegin(GL.GL_LINE_STRIP)
             y = 285
             x = 50
-            x_next = (len(signal)* 20) + 70
+            x_next = (len(signal)* 26) + 26
             GL.glVertex2f(x, y)
-            GL.glVertex2f(x_next, y)
+            GL.glVertex2f(x_next//21.9+1, y)
             GL.glEnd()
 
 
@@ -398,45 +383,13 @@ class Gui(wx.Frame):
                self.monitors.remove_monitor(m_id,port)
 
         #Initialise monitor data
-        
-
-        #monitor = self.read_signal_name() # device and port id
-
-        
-        
-        C1 = self.devices.find_devices(self.devices.NAND)[0]
-        C1_name = self.devices.names.get_name_string(C1)
-        print(C1,self.devices.names.get_name_string(C1))
-        outputs = self.devices.get_device(C1).outputs
-        print(self.devices.get_signal_ids(C1_name))
-
-        
-        
+                
 
         print(self.monitors.get_signal_names())
 
         self.component_list = []
         for d in self.devices.devices_list:
             self.component_list.append(self.devices.names.get_name_string(d.device_id))
-        
-
-        '''monitor_error = self.monitors.make_monitor(device, port,self.cycles_completed)
-        if monitor_error == self.monitors.NO_ERROR:
-            print("Successfully made monitor.")
-        else:
-            print("Error! Could not make monitor.")'''
-
-        '''self.monitors.make_monitor(C1, None,0)
-        cycles = 50
-
-        for _ in range(cycles):
-            if self.network.execute_network():
-                self.monitors.record_signals()
-            else:
-                print("Error! Network oscillating.")
-                return False
-        self.monitors.reset_monitors()'''
-       
 
     
 
@@ -445,16 +398,10 @@ class Gui(wx.Frame):
         self.panel = wx.ScrolledWindow(self, wx.ID_ANY, pos=(25, 50), size=(300, 175))
         #self.panel.SetBackgroundColour("White")
 
-        ''' SWITCH code
-        SW1 = self.devices.find_devices(self.devices.SWITCH)[0]
-        print(SW1,self.devices.names.get_name_string(SW1))
-        outputs = self.devices.get_device(SW1).outputs
-        print(outputs,self.devices.get_device(SW1).switch_state)'''
-
         switch_x = 10
         switch_y = 10
-        switches = self.devices.find_devices(self.devices.SWITCH)
-        n = len(switches) 
+        self.switches = self.devices.find_devices(self.devices.SWITCH)
+        n = len(self.switches) 
 
         #SW2 = self.devices.find_devices(self.devices.SWITCH)[1]
         #SW2 = self.devices.get_device(SW2)
@@ -476,8 +423,8 @@ class Gui(wx.Frame):
 
         self.list_of_change_buttons = []
         
-        list_of_switch_names = [self.devices.names.get_name_string(switch) for switch in switches]  # Switch name generation
-        list_of_switch_values = [self.devices.get_device(switch).switch_state for switch in switches]
+        list_of_switch_names = [self.devices.names.get_name_string(switch) for switch in self.switches]  # Switch name generation
+        list_of_switch_values = [self.devices.get_device(switch).switch_state for switch in self.switches]
         self.list_of_switch_text_values = []
 
         for i in range(n):
@@ -685,15 +632,9 @@ class Gui(wx.Frame):
         val = self.run_spin_control.GetValue()
         text = f"Run button pressed with {val} cycles"
         # self.canvas.render(text)
-        self.number_of_cycles = val
         self.cycles_completed = val
 
-        '''self.canvas.data = [
-            [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
-            for j in range(len(self.canvas.added_monitor_list))
-        ]'''
-
-        for _ in range(self.number_of_cycles*25):
+        for _ in range(val*26):
             if self.network.execute_network():
                 self.monitors.record_signals()
             else:
@@ -702,25 +643,61 @@ class Gui(wx.Frame):
         for device_id, output_id in self.monitors.monitors_dictionary:
             signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
             self.canvas.data.append(signal_list)
-        self.canvas.data_2 = None
         self.canvas.render(text)
         print(text)
-        print(self.canvas.data_2)
 
     def OnButton_continue(self, event):
         """Handle the event when the user clicks button_continue."""
-        val = self.continue_spin_control.GetValue()
-        self.number_of_cycles += val
-        text = f"Continue button pressed with {val} cycles"
+        cycles = self.continue_spin_control.GetValue()
+        text = f"Continue button pressed with {cycles} cycles"
 
         # self.canvas.data = [(i//5) % 2  for i in range(self.number_of_cycles)]
-        self.canvas.data = [
+        '''self.canvas.data = [
             [(i // (j + 1)) % 2 for i in range(self.number_of_cycles*2)]
             for j in range(len(self.canvas.added_monitor_list))
-        ]
+        ]'''
+
+        if cycles is not None:  # if the number of cycles provided is valid
+            if self.cycles_completed == 0:
+                print("Error! Nothing to continue. Run first.")
+                
+            for _ in range(cycles*26):
+                if self.network.execute_network():
+                    self.monitors.record_signals()
+                    #print(self.canvas.data)
+                
+                else:
+                    print("Error! Network oscillating.")
+            self.cycles_completed += cycles
+
+
+            print(self.monitors.monitors_dictionary.keys())
+            print(len(self.canvas.data))
+
+            signal_lengths = []
+
+            '''for device_id, output_id in self.monitors.monitors_dictionary:
+                signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+                signal_lengths.append(len(signal_list))
+                #self.data.append(signal_list)
+
+            if len(self.canvas.data) != len(self.monitors.get_signal_names()[0]):
+
+                for device_id, output_id in self.monitors.monitors_dictionary:
+                    signal_list = self.monitors.monitors_dictionary[(device_id, output_id)]
+                    
+                    if len(signal_list) < max(signal_lengths):
+                        signal_list = [0 if signal==4  else signal for signal in signal_list]
+                        zeros = [0 for i in range(max(signal_lengths) -len(signal_list))]
+                        zeros.extend(signal_list) 
+                        signal_list = zeros
+                        self.canvas.data.append(signal_list)'''
+                    
+
+
         self.canvas.render(text)
 
-        print(f"Button continue pressed with {val} cycles")
+        print(f"Button continue pressed with {cycles} cycles")
 
     def OnButton_Add_Monitor(self, event):
         """Handle the event when the user clicks button Add_Monitor."""
@@ -730,13 +707,11 @@ class Gui(wx.Frame):
         
         
         [device, port] = self.devices.get_signal_ids(signal)
-        monitor_error = self.monitors.make_monitor(device, port,0)
+        monitor_error = self.monitors.make_monitor(device, port,self.cycles_completed)
         if monitor_error == self.monitors.NO_ERROR:
             print("Successfully made monitor.")
         else:
             print("Error! Could not make monitor.")
-
-        print(self.monitors.get_signal_names())
 
         self.add_list.remove(signal)
         self.Remove_list.append(signal)
@@ -745,7 +720,6 @@ class Gui(wx.Frame):
 
         self.canvas.added_monitor_list.append(signal)
         self.canvas.added_monitor_id_tuple_list.append((device, port))
-        print(self.canvas.added_monitor_id_tuple_list)
         self.canvas.render(text)
 
     def OnButton_Remove_Monitor(self, event):
@@ -781,8 +755,7 @@ class Gui(wx.Frame):
     def OnButton_Quit(self, event):
         """Handle the event when the user clicks button_Quit."""
         self.canvas.clear_canvas()
-        self.canvas.data = None
-        self.canvas.data_2 = []
+        self.canvas.data = []
         self.canvas.added_monitor_list = []
         self.add_list = self.component_list.copy()
         self.Remove_list = []
@@ -848,6 +821,7 @@ class Gui(wx.Frame):
             # self.colour_panel.SetBackgroundColour('Green')
             # self.list_of_panels[0].SetBackgroundColour('Green')
             val = int(self.list_of_switch_text_values[i].GetLabel())
+            self.devices.set_switch(self.switches[i],(val +1)%2)
             self.list_of_switch_text_values[i].SetLabel(f"{(val +1)%2}")
             print(f"Button Change S{i+1} pressed")
 
