@@ -351,12 +351,14 @@ class Gui(wx.Frame):
             for port in ports:
                self.monitors.remove_monitor(m_id,port)
 
-        #Initialise monitor data
+        #Initialise input and output id and name lists
                 
-        self.component_list = []
-        self.connection_list = []
-        self.input_ids = []
-        self.output_connections = []
+        self.component_list = [] #All components for Add device
+        self.connection_list = [] #Input connection names
+        
+        self.input_ids = [] #(device_id,input_id)
+        self.output_connections = [] #Outpur connection names
+        self.output_ids = [] #(device_id,output_id)
         for d in self.devices.devices_list:
             self.component_list.append(self.devices.names.get_name_string(d.device_id))
 
@@ -364,25 +366,19 @@ class Gui(wx.Frame):
                 inputs = d.inputs
                 outputs = d.outputs
 
-                print(outputs)
 
                 for output_id in outputs.keys():
+                    self.output_ids.append((d.device_id,output_id))
                     output_name = self.devices.names.get_name_string(d.device_id)
                     if output_id is None:
                         pass
                     else:
                         output_name = f"{output_name}:{self.devices.names.get_name_string(output_id)}"
                     self.output_connections.append(output_name)
-                    
-
 
                 for input_id,(connected_output_device_id, connected_output_port_id) in inputs.items():
-                    self.input_ids.append(input_id)
+                    self.input_ids.append((d.device_id,input_id))
                     self.connection_list.append(f'{self.devices.names.get_name_string(d.device_id)}:{self.devices.names.get_name_string(input_id)}')
-
-        print(self.connection_list)
-        print(self.input_ids)
-
     
 
         # Switch Panel
@@ -392,13 +388,8 @@ class Gui(wx.Frame):
 
         switch_x = 10
         switch_y = 10
-        self.switches = self.devices.find_devices(self.devices.SWITCH)
+        self.switches = self.devices.find_devices(self.devices.SWITCH) #Switch ids
         n = len(self.switches) 
-
-        #SW2 = self.devices.find_devices(self.devices.SWITCH)[1]
-        #SW2 = self.devices.get_device(SW2)
-        #self.devices.set_switch(SW2,1)  Change switch states
-        
 
         self.text_switch = wx.StaticText(
             self.panel, wx.ID_ANY, "Switches", pos=(switch_x-5, switch_y)
@@ -418,6 +409,11 @@ class Gui(wx.Frame):
         list_of_switch_names = [self.devices.names.get_name_string(switch) for switch in self.switches]  # Switch name generation
         list_of_switch_values = [self.devices.get_device(switch).switch_state for switch in self.switches]
         self.list_of_switch_text_values = []
+
+        self.output_connections.extend(list_of_switch_names)
+        self.output_ids.extend((switch,None) for switch in self.switches)
+        print(self.output_connections)
+        print(self.output_ids)
 
         for i in range(n):
             self.list_of_change_buttons.append(
@@ -455,7 +451,7 @@ class Gui(wx.Frame):
                 pos=(125,15),
             )
 
-        self.Gate_choices1 = wx.Choice(
+        self.Gate_choices = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
             choices=self.connection_list,
@@ -483,7 +479,7 @@ class Gui(wx.Frame):
                 pos=(0, 100),
             )
 
-        self.Output_choices1 = wx.Choice(
+        self.Output_choices = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
             choices=self.output_connections,
@@ -765,7 +761,7 @@ class Gui(wx.Frame):
         print("Button Quit pressed")
 
     def OnButton_Language(self, event):
-        """Handle the event when the user clicks button_Quit."""
+        """Handle the event when the user clicks button_Language."""
         index = self.Language_choices.GetCurrentSelection()
         language = self.Language_choices.GetString(index)
 
@@ -808,7 +804,7 @@ class Gui(wx.Frame):
     def getOnButton_Change(self, i):
         """Generate a handle for a change button depending on the i'th element of the switch."""
         def OnButton_Change(event):
-            """Handle the event when the user clicks."""
+            """Handle the event when the user clicks change_button."""
             # self.colour_panel.SetBackgroundColour('Green')
             # self.list_of_panels[0].SetBackgroundColour('Green')
             val = int(self.list_of_switch_text_values[i].GetLabel())
@@ -817,3 +813,23 @@ class Gui(wx.Frame):
             print(f"Button Change S{i+1} pressed")
 
         return OnButton_Change
+
+    def OnButton_Make_Connection(self, event):
+        """Handle the event when the user presses connections_button."""
+        input_index =  self.Gate_choices.GetCurrentSelection()
+        output_index = self.Gate_choices.GetCurrentSelection()
+        input_device_id,input_id = self.input_ids[input_index]
+        output_device_id,output_id = self.output_ids[output_index]
+        #delete current connections
+        #self.network.make_connection(self, input_device_id, input_id, output_device_id,output_id)
+
+        self.monitors.reset_monitors()
+        self.monitored = self.monitors.get_signal_names()[0]
+
+        for m in self.monitored:
+            m_id = self.devices.get_signal_ids(m)[0]
+            ports = self.devices.get_signal_ids(m)[1:]
+            for port in ports:
+               self.monitors.remove_monitor(m_id,port)
+
+        print("Button Quit pressed")
