@@ -17,7 +17,7 @@ import pdb
 
 # self.type = None
 # self.id = None
-import pytest
+#import pytest
 
 
 class Parser:
