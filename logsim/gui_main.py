@@ -74,34 +74,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
         self.devices = devices
         self.network = network
 
-        '''g1 = self.devices.find_devices(self.devices.NAND)[0]
-        outputs = self.devices.get_device(g1).outputs
-        inputs = self.devices.get_device(g1).inputs
-        print(self.devices.names.get_name_string(g1))
-        print(inputs)
-
-        for value in inputs.values():
-            print(self.devices.names.get_name_string(value[0]))'''
-
-        '''for output_id in outputs.keys():
-            if output_id == None:
-                pass
-            else:
-                self.monitors.make_monitor(g1,output_id)
-                for i in range(50):
-                    if self.network.execute_network():
-                        self.monitors.record_signals()
-                        #print(self.monitors.get_monitor_signal(g1,key))
-                    else:
-                        print(False)
-                print(self.devices.names.get_name_string(g1),output_id)
-                print(self.monitors.monitors_dictionary[(g1,output_id)])'''
-
-        #for d in self.devices.devices_list:
-            #print(self.devices.names.get_name_string(d.device_id))
-
-        #self.monitors.make_monitor()
-
         # Initialise variables for zooming
         self.zoom = 1
 
@@ -213,8 +185,6 @@ class MyGLCanvas(wxcanvas.GLCanvas):
 
         # Clear everything
         GL.glClear(GL.GL_COLOR_BUFFER_BIT)
-
-        signal_list_data =[]
 
 
         if self.data:
@@ -374,7 +344,6 @@ class Gui(wx.Frame):
 
         self.monitors.reset_monitors()
         self.monitored = self.monitors.get_signal_names()[0]
-        print(self.monitored)
 
         for m in self.monitored:
             m_id = self.devices.get_signal_ids(m)[0]
@@ -384,12 +353,35 @@ class Gui(wx.Frame):
 
         #Initialise monitor data
                 
-
-        print(self.monitors.get_signal_names())
-
         self.component_list = []
+        self.connection_list = []
+        self.input_ids = []
+        self.output_connections = []
         for d in self.devices.devices_list:
             self.component_list.append(self.devices.names.get_name_string(d.device_id))
+
+            if d.device_kind != self.devices.SWITCH:
+                inputs = d.inputs
+                outputs = d.outputs
+
+                print(outputs)
+
+                for output_id in outputs.keys():
+                    output_name = self.devices.names.get_name_string(d.device_id)
+                    if output_id is None:
+                        pass
+                    else:
+                        output_name = f"{output_name}:{self.devices.names.get_name_string(output_id)}"
+                    self.output_connections.append(output_name)
+                    
+
+
+                for input_id,(connected_output_device_id, connected_output_port_id) in inputs.items():
+                    self.input_ids.append(input_id)
+                    self.connection_list.append(f'{self.devices.names.get_name_string(d.device_id)}:{self.devices.names.get_name_string(input_id)}')
+
+        print(self.connection_list)
+        print(self.input_ids)
 
     
 
@@ -466,16 +458,16 @@ class Gui(wx.Frame):
         self.Gate_choices1 = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
-            choices=['gate1','gate2'],
+            choices=self.connection_list,
             pos=(175, 50),
         )
 
-        self.Input_choices1 = wx.Choice(
+        '''self.Input_choices1 = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
             choices=['input1','input2'],
             pos=(275, 50),
-        )
+        )'''
 
         self.text_input_pins = wx.StaticText(
                 self.panel_connections,
@@ -494,7 +486,7 @@ class Gui(wx.Frame):
         self.Output_choices1 = wx.Choice(
             self.panel_connections,
             wx.ID_ANY,
-            choices=['output1','output2'],
+            choices=self.output_connections,
             pos=(175, 100),
         )
 
@@ -664,7 +656,6 @@ class Gui(wx.Frame):
             for _ in range(cycles*26):
                 if self.network.execute_network():
                     self.monitors.record_signals()
-                    #print(self.canvas.data)
                 
                 else:
                     print("Error! Network oscillating.")
@@ -826,24 +817,3 @@ class Gui(wx.Frame):
             print(f"Button Change S{i+1} pressed")
 
         return OnButton_Change
-
-
-#arg_list = sys.argv[1:]
-#path, arguments = getopt.getopt(arg_list, "hc:")  
-
-#print(path)
-
-names = Names()
-devices = Devices(names)
-network = Network(names, devices)
-monitors = Monitors(names, devices, network)
-
-
-
-#scanner = Scanner(path, names)
-#parser = Parser(names, devices, network, monitors, scanner)
-
-#app = wx.App()
-#gui = Gui("GUI",names, devices, network, monitors)
-#gui.Show(True)
-#app.MainLoop()
