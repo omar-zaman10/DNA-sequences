@@ -1,3 +1,4 @@
+from cv2 import _InputArray_STD_ARRAY
 import wx
 import wx.glcanvas as wxcanvas
 from OpenGL import GL, GLUT
@@ -414,6 +415,10 @@ class Gui(wx.Frame):
         self.output_ids.extend((switch,None) for switch in self.switches)
         print(self.output_connections)
         print(self.output_ids)
+        print(self.connection_list)
+        print(self.input_ids)
+
+
 
         for i in range(n):
             self.list_of_change_buttons.append(
@@ -565,8 +570,8 @@ class Gui(wx.Frame):
         self.button_Remove_Monitor.Bind(wx.EVT_BUTTON, self.OnButton_Remove_Monitor)
         self.button_Quit.Bind(wx.EVT_BUTTON, self.OnButton_Quit)
         self.button_language.Bind(wx.EVT_BUTTON, self.OnButton_Language)
+        self.connections_button.Bind(wx.EVT_BUTTON, self.OnButton_Make_Connection)
 
-        # self.change_button.Bind(wx.EVT_BUTTON, self.OnButton_Change)
 
         for i in range(n):
             self.list_of_change_buttons[i].Bind(
@@ -575,29 +580,18 @@ class Gui(wx.Frame):
 
         # Bind Controls/menus
 
-        # self.run_spin_control.Bind(wx)
-
         # Configure sizers for layout
         main_sizer = wx.BoxSizer(wx.HORIZONTAL)
         side_sizer = wx.BoxSizer(wx.VERTICAL)
         new_sizer = wx.BoxSizer(wx.HORIZONTAL)
 
-        # self.panel2 = wx.ScrolledWindow(self,wx.ID_ANY,pos=(25,250),size = (500,300))
-
         self.canvas = MyGLCanvas(
             self.scrollable, wx.ID_ANY, (25, 250), wx.Size(500, 300,),devices,monitors,network
         )
-        # self.panel2.ShowScrollbars(wx.SHOW_SB_ALWAYS,wx.SHOW_SB_DEFAULT)
-        # self.panel2.SetScrollbars(20, 10, 50,0)
-
         self.canvas.SetSizeHints(500, 500)
         main_sizer.Add(self.scrollable, 1, wx.EXPAND + wx.TOP, 5)
-
-        # new_sizer.Add(self.panel,1,  wx.EXPAND+wx.TOP, 5)
-
         self.SetSizeHints(200, 200)
         self.SetSizer(main_sizer)
-        # self.SetSizer(new_sizer)
 
     def OnPaint(self, event=None):
         """Draw vertical line for the Switch Panel."""
@@ -817,19 +811,18 @@ class Gui(wx.Frame):
     def OnButton_Make_Connection(self, event):
         """Handle the event when the user presses connections_button."""
         input_index =  self.Gate_choices.GetCurrentSelection()
-        output_index = self.Gate_choices.GetCurrentSelection()
+        output_index = self.Output_choices.GetCurrentSelection()
         input_device_id,input_id = self.input_ids[input_index]
         output_device_id,output_id = self.output_ids[output_index]
-        #delete current connections
-        #self.network.make_connection(self, input_device_id, input_id, output_device_id,output_id)
+        G = self.devices.get_device(input_device_id)
+        print(G.inputs)
+        G.inputs[input_id] = None
+    
+        self.network.make_connection(input_device_id, input_id, output_device_id,output_id)
 
-        self.monitors.reset_monitors()
-        self.monitored = self.monitors.get_signal_names()[0]
+        inputs = G.inputs
 
-        for m in self.monitored:
-            m_id = self.devices.get_signal_ids(m)[0]
-            ports = self.devices.get_signal_ids(m)[1:]
-            for port in ports:
-               self.monitors.remove_monitor(m_id,port)
+        print(inputs)
 
-        print("Button Quit pressed")
+
+        print("Button Make Connection pressed")
