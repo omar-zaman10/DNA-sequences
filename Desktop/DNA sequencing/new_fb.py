@@ -5,6 +5,9 @@ def draw_trellis(my_graph,tuples,recieved,transmitted,edges,alphas,betas,values,
     '''
     Produces a html file with a visualisation of the graph given by the adjacency dictionary
     '''
+
+    '''changes'''
+
     if type(my_graph) != dict:
         raise TypeError('Only accepts dict types')
 
