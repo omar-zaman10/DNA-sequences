@@ -39,7 +39,6 @@ def draw_trellis(my_graph,tuples,recieved,transmitted,edges,alphas,betas,values,
                 weight = 11
                         
 
-            
 
             g.add_edge(node,neighbour,label=label,value=weight,title=title)
     g.force_atlas_2based()
@@ -166,7 +165,6 @@ for key,value in probabilities.items():
     s = sum(value[1])
 
     transitions[key] = (t/(s+t),s/(s+t))
-
 
 
 

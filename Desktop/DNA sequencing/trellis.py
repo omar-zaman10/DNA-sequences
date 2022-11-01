@@ -1,9 +1,12 @@
 from pyvis import network as net
+import networkx as nx
+
+
 
 
 class Trellis:
 
-    def __init__(self):
+    def __init__(self,transmitted,recieved):
 
         self.nodes = [] # List of nodes as their str values, '(0,0)'
         self.tuples = {} #Converts from string node to tuple key = string : value = tuple
@@ -15,10 +18,12 @@ class Trellis:
         self.values = {} # Alpha Gamma Beta for each edge 
         self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
         self.transitions = {} # Normalises the probabilities  0,1,2,3.. : (p(transmission),p(subsititution)) normalises the probabilities
+        self.transmitted = transmitted
+        self.recieved = recieved
 
-    def forward_backward(self,transmitted,recieved,Pi=0.1,Pd=0.1,Ps=0.2):
-
-
+    def forward_backward(self,Pi=0.1,Pd=0.1,Ps=0.2):
+        transmitted = self.transmitted
+        recieved = self.recieved
 
         for j in range(len(recieved)+1):
             for i in range(len(transmitted)+1):
@@ -127,10 +132,12 @@ class Trellis:
 
         return self.transitions
 
-    def draw_trellis(self,transmitted,recieved,name = 'my_net.html',directed =True):
+    def draw_trellis(self,name = 'my_net.html',directed =True):
         '''
         Produces a html file with a visualisation of the graph given by the adjacency dictionary
         '''
+        transmitted = self.transmitted
+        recieved = self.recieved
 
         if type(self.my_graph) != dict:
             raise TypeError('Only accepts dict types')
@@ -174,17 +181,16 @@ class Trellis:
 
 
 
-
-
 if __name__ == '__main__':
-
+    
     transmitted = ['A','C','G','A']
     recieved = ['A','T','G','C','A']
+
+    T = Trellis(transmitted,recieved)
+
+    print(T.forward_backward())
+
+    T.draw_trellis(name='r.html')
     
-    T = Trellis()
-
-    print(T.forward_backward(transmitted,recieved))
-
-    T.draw_trellis(transmitted,recieved,name='raheel_fathir.html')
 
 

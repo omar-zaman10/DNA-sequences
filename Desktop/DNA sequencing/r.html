@@ -1,0 +1,163 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script src="lib/bindings/utils.js"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 1400px;
+                 height: 700px;
+                 background-color: #ffffff;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "#97c2fc", "id": "(0, 0)", "label": "(0, 0)", "shape": "dot", "title": "(0, 0) alpha = 1  beta = 0.012321806000000001"}, {"color": "#97c2fc", "id": "(1, 0)", "label": "(1, 0)", "shape": "dot", "title": "(1, 0) alpha = 0.1  beta = 0.0036487600000000005"}, {"color": "#97c2fc", "id": "(2, 0)", "label": "(2, 0)", "shape": "dot", "title": "(2, 0) alpha = 0.010000000000000002  beta = 0.0011381"}, {"color": "#97c2fc", "id": "(3, 0)", "label": "(3, 0)", "shape": "dot", "title": "(3, 0) alpha = 0.0010000000000000002  beta = 0.00018600000000000002"}, {"color": "#97c2fc", "id": "(4, 0)", "label": "(4, 0)", "shape": "dot", "title": "(4, 0) alpha = 0.00010000000000000003  beta = 1.0000000000000004e-05"}, {"color": "#97c2fc", "id": "(0, 1)", "label": "(0, 1)", "shape": "dot", "title": "(0, 1) alpha = 0.1  beta = 0.011812300000000001"}, {"color": "#97c2fc", "id": "(1, 1)", "label": "(1, 1)", "shape": "dot", "title": "(1, 1) alpha = 0.62  beta = 0.017959500000000003"}, {"color": "#97c2fc", "id": "(2, 1)", "label": "(2, 1)", "shape": "dot", "title": "(2, 1) alpha = 0.083  beta = 0.008695"}, {"color": "#97c2fc", "id": "(3, 1)", "label": "(3, 1)", "shape": "dot", "title": "(3, 1) alpha = 0.0104  beta = 0.00125"}, {"color": "#97c2fc", "id": "(4, 1)", "label": "(4, 1)", "shape": "dot", "title": "(4, 1) alpha = 0.00165  beta = 0.00010000000000000003"}, {"color": "#97c2fc", "id": "(0, 2)", "label": "(0, 2)", "shape": "dot", "title": "(0, 2) alpha = 0.010000000000000002  beta = 0.0179635"}, {"color": "#97c2fc", "id": "(1, 2)", "label": "(1, 2)", "shape": "dot", "title": "(1, 2) alpha = 0.083  beta = 0.041100000000000005"}, {"color": "#97c2fc", "id": "(2, 2)", "label": "(2, 2)", "shape": "dot", "title": "(2, 2) alpha = 0.1406  beta = 0.0649"}, {"color": "#97c2fc", "id": "(3, 2)", "label": "(3, 2)", "shape": "dot", "title": "(3, 2) alpha = 0.0317  beta = 0.0104"}, {"color": "#97c2fc", "id": "(4, 2)", "label": "(4, 2)", "shape": "dot", "title": "(4, 2) alpha = 0.005415  beta = 0.0010000000000000002"}, {"color": "#97c2fc", "id": "(0, 3)", "label": "(0, 3)", "shape": "dot", "title": "(0, 3) alpha = 0.0010000000000000002  beta = 0.008735"}, {"color": "#97c2fc", "id": "(1, 3)", "label": "(1, 3)", "shape": "dot", "title": "(1, 3) alpha = 0.0104  beta = 0.0649"}, {"color": "#97c2fc", "id": "(2, 3)", "label": "(2, 3)", "shape": "dot", "title": "(2, 3) alpha = 0.0317  beta = 0.1406"}, {"color": "#97c2fc", "id": "(3, 3)", "label": "(3, 3)", "shape": "dot", "title": "(3, 3) alpha = 0.09070000000000002  beta = 0.083"}, {"color": "#97c2fc", "id": "(4, 3)", "label": "(4, 3)", "shape": "dot", "title": "(4, 3) alpha = 0.0159515  beta = 0.010000000000000002"}, {"color": "#97c2fc", "id": "(0, 4)", "label": "(0, 4)", "shape": "dot", "title": "(0, 4) alpha = 0.00010000000000000003  beta = 0.00165"}, {"color": "#97c2fc", "id": "(1, 4)", "label": "(1, 4)", "shape": "dot", "title": "(1, 4) alpha = 0.00125  beta = 0.0104"}, {"color": "#97c2fc", "id": "(2, 4)", "label": "(2, 4)", "shape": "dot", "title": "(2, 4) alpha = 0.009535  beta = 0.083"}, {"color": "#97c2fc", "id": "(3, 4)", "label": "(3, 4)", "shape": "dot", "title": "(3, 4) alpha = 0.016363500000000003  beta = 0.62"}, {"color": "#97c2fc", "id": "(4, 4)", "label": "(4, 4)", "shape": "dot", "title": "(4, 4) alpha = 0.021371500000000005  beta = 0.1"}, {"color": "#97c2fc", "id": "(0, 5)", "label": "(0, 5)", "shape": "dot", "title": "(0, 5) alpha = 1.0000000000000004e-05  beta = 0.00010000000000000003"}, {"color": "#97c2fc", "id": "(1, 5)", "label": "(1, 5)", "shape": "dot", "title": "(1, 5) alpha = 0.00018600000000000002  beta = 0.0010000000000000002"}, {"color": "#97c2fc", "id": "(2, 5)", "label": "(2, 5)", "shape": "dot", "title": "(2, 5) alpha = 0.0012221  beta = 0.010000000000000002"}, {"color": "#97c2fc", "id": "(3, 5)", "label": "(3, 5)", "shape": "dot", "title": "(3, 5) alpha = 0.003665560000000001  beta = 0.1"}, {"color": "#97c2fc", "id": "(4, 5)", "label": "(4, 5)", "shape": "dot", "title": "(4, 5) alpha = 0.012321806000000003  beta = 1"}]);
+                  edges = new vis.DataSet([{"arrows": "to", "from": "(0, 0)", "label": "A", "title": "0.0011812300000000001", "to": "(0, 1)", "value": 11}, {"arrows": "to", "from": "(0, 0)", "label": "A", "title": "0.0003648760000000001 transmission = 0.918677811083716, substitution = 0.08132218891628389", "to": "(1, 0)", "value": 12}, {"arrows": "to", "from": "(0, 0)", "label": "0.6", "title": "0.010775700000000001", "to": "(1, 1)", "value": 10}, {"arrows": "to", "from": "(1, 0)", "label": "0.1", "title": "0.00017959500000000006", "to": "(1, 1)", "value": 10}, {"arrows": "to", "from": "(1, 0)", "label": "C", "title": "1.1381e-05 transmission = 0.04676107000075841, substitution = 0.9532389299992416", "to": "(2, 0)", "value": 12}, {"arrows": "to", "from": "(1, 0)", "label": "0.2", "title": "0.00017390000000000003", "to": "(2, 1)", "value": 10}, {"arrows": "to", "from": "(2, 0)", "label": "0.1", "title": "8.695000000000002e-06", "to": "(2, 1)", "value": 10}, {"arrows": "to", "from": "(2, 0)", "label": "G", "title": "1.8600000000000008e-07 transmission = 0.6197165646474052, substitution = 0.3802834353525949", "to": "(3, 0)", "value": 12}, {"arrows": "to", "from": "(2, 0)", "label": "0.2", "title": "2.5000000000000006e-06", "to": "(3, 1)", "value": 10}, {"arrows": "to", "from": "(3, 0)", "label": "0.1", "title": "1.2500000000000005e-07", "to": "(3, 1)", "value": 10}, {"arrows": "to", "from": "(3, 0)", "label": "A", "title": "1.0000000000000007e-09 transmission = 0.8393282747631146, substitution = 0.1606717252368854", "to": "(4, 0)", "value": 12}, {"arrows": "to", "from": "(3, 0)", "label": "0.6", "title": "6.000000000000003e-08", "to": "(4, 1)", "value": 10}, {"arrows": "to", "from": "(4, 0)", "label": "0.1", "title": "1.0000000000000007e-09", "to": "(4, 1)", "value": 10}, {"arrows": "to", "from": "(0, 1)", "label": "T", "title": "0.00017963500000000004", "to": "(0, 2)", "value": 11}, {"arrows": "to", "from": "(0, 1)", "label": "0.1", "title": "0.00017959500000000006", "to": "(1, 1)", "value": 10}, {"arrows": "to", "from": "(0, 1)", "label": "0.2", "title": "0.0008220000000000002", "to": "(1, 2)", "value": 10}, {"arrows": "to", "from": "(1, 1)", "label": "0.1", "title": "0.0025482000000000005", "to": "(1, 2)", "value": 10}, {"arrows": "to", "from": "(1, 1)", "label": "0.1", "title": "0.00053909", "to": "(2, 1)", "value": 10}, {"arrows": "to", "from": "(1, 1)", "label": "0.2", "title": "0.0080476", "to": "(2, 2)", "value": 10}, {"arrows": "to", "from": "(2, 1)", "label": "0.1", "title": "0.0005386700000000001", "to": "(2, 2)", "value": 10}, {"arrows": "to", "from": "(2, 1)", "label": "0.1", "title": "1.0375000000000001e-05", "to": "(3, 1)", "value": 10}, {"arrows": "to", "from": "(2, 1)", "label": "0.2", "title": "0.00017264000000000003", "to": "(3, 2)", "value": 10}, {"arrows": "to", "from": "(3, 1)", "label": "0.1", "title": "1.0816e-05", "to": "(3, 2)", "value": 10}, {"arrows": "to", "from": "(3, 1)", "label": "0.1", "title": "1.0400000000000003e-07", "to": "(4, 1)", "value": 10}, {"arrows": "to", "from": "(3, 1)", "label": "0.2", "title": "2.0800000000000004e-06", "to": "(4, 2)", "value": 10}, {"arrows": "to", "from": "(4, 1)", "label": "0.1", "title": "1.6500000000000003e-07", "to": "(4, 2)", "value": 10}, {"arrows": "to", "from": "(0, 2)", "label": "G", "title": "8.735000000000002e-06", "to": "(0, 3)", "value": 11}, {"arrows": "to", "from": "(0, 2)", "label": "0.1", "title": "4.1100000000000016e-05", "to": "(1, 2)", "value": 10}, {"arrows": "to", "from": "(0, 2)", "label": "0.2", "title": "0.00012980000000000004", "to": "(1, 3)", "value": 10}, {"arrows": "to", "from": "(1, 2)", "label": "0.1", "title": "0.0005386700000000001", "to": "(1, 3)", "value": 10}, {"arrows": "to", "from": "(1, 2)", "label": "0.1", "title": "0.0005386700000000001", "to": "(2, 2)", "value": 10}, {"arrows": "to", "from": "(1, 2)", "label": "0.2", "title": "0.0023339600000000004", "to": "(2, 3)", "value": 10}, {"arrows": "to", "from": "(2, 2)", "label": "0.1", "title": "0.0019768360000000005", "to": "(2, 3)", "value": 10}, {"arrows": "to", "from": "(2, 2)", "label": "0.1", "title": "0.000146224", "to": "(3, 2)", "value": 10}, {"arrows": "to", "from": "(2, 2)", "label": "0.6", "title": "0.00700188", "to": "(3, 3)", "value": 10}, {"arrows": "to", "from": "(3, 2)", "label": "0.1", "title": "0.00026311", "to": "(3, 3)", "value": 10}, {"arrows": "to", "from": "(3, 2)", "label": "0.1", "title": "3.1700000000000006e-06", "to": "(4, 2)", "value": 10}, {"arrows": "to", "from": "(3, 2)", "label": "0.2", "title": "6.340000000000001e-05", "to": "(4, 3)", "value": 10}, {"arrows": "to", "from": "(4, 2)", "label": "0.1", "title": "5.4150000000000015e-06", "to": "(4, 3)", "value": 10}, {"arrows": "to", "from": "(0, 3)", "label": "C", "title": "1.6500000000000003e-07", "to": "(0, 4)", "value": 11}, {"arrows": "to", "from": "(0, 3)", "label": "0.1", "title": "6.490000000000002e-06", "to": "(1, 3)", "value": 10}, {"arrows": "to", "from": "(0, 3)", "label": "0.2", "title": "2.0800000000000004e-06", "to": "(1, 4)", "value": 10}, {"arrows": "to", "from": "(1, 3)", "label": "0.1", "title": "1.0816e-05", "to": "(1, 4)", "value": 10}, {"arrows": "to", "from": "(1, 3)", "label": "0.1", "title": "0.000146224", "to": "(2, 3)", "value": 10}, {"arrows": "to", "from": "(1, 3)", "label": "0.6", "title": "0.0005179200000000001", "to": "(2, 4)", "value": 10}, {"arrows": "to", "from": "(2, 3)", "label": "0.1", "title": "0.00026311", "to": "(2, 4)", "value": 10}, {"arrows": "to", "from": "(2, 3)", "label": "0.1", "title": "0.00026311", "to": "(3, 3)", "value": 10}, {"arrows": "to", "from": "(2, 3)", "label": "0.2", "title": "0.0039308", "to": "(3, 4)", "value": 10}, {"arrows": "to", "from": "(3, 3)", "label": "0.1", "title": "0.0056234000000000015", "to": "(3, 4)", "value": 10}, {"arrows": "to", "from": "(3, 3)", "label": "0.1", "title": "9.070000000000004e-05", "to": "(4, 3)", "value": 10}, {"arrows": "to", "from": "(3, 3)", "label": "0.2", "title": "0.0018140000000000005", "to": "(4, 4)", "value": 10}, {"arrows": "to", "from": "(4, 3)", "label": "0.1", "title": "0.00015951500000000002", "to": "(4, 4)", "value": 10}, {"arrows": "to", "from": "(0, 4)", "label": "A", "title": "1.0000000000000007e-09", "to": "(0, 5)", "value": 11}, {"arrows": "to", "from": "(0, 4)", "label": "0.1", "title": "1.0400000000000003e-07", "to": "(1, 4)", "value": 10}, {"arrows": "to", "from": "(0, 4)", "label": "0.6", "title": "6.000000000000003e-08", "to": "(1, 5)", "value": 10}, {"arrows": "to", "from": "(1, 4)", "label": "0.1", "title": "1.2500000000000005e-07", "to": "(1, 5)", "value": 10}, {"arrows": "to", "from": "(1, 4)", "label": "0.1", "title": "1.0375000000000001e-05", "to": "(2, 4)", "value": 10}, {"arrows": "to", "from": "(1, 4)", "label": "0.2", "title": "2.5000000000000006e-06", "to": "(2, 5)", "value": 10}, {"arrows": "to", "from": "(2, 4)", "label": "0.1", "title": "9.535000000000003e-06", "to": "(2, 5)", "value": 10}, {"arrows": "to", "from": "(2, 4)", "label": "0.1", "title": "0.00059117", "to": "(3, 4)", "value": 10}, {"arrows": "to", "from": "(2, 4)", "label": "0.2", "title": "0.00019070000000000003", "to": "(3, 5)", "value": 10}, {"arrows": "to", "from": "(3, 4)", "label": "0.1", "title": "0.00016363500000000006", "to": "(3, 5)", "value": 10}, {"arrows": "to", "from": "(3, 4)", "label": "0.1", "title": "0.00016363500000000006", "to": "(4, 4)", "value": 10}, {"arrows": "to", "from": "(3, 4)", "label": "0.6", "title": "0.009818100000000001", "to": "(4, 5)", "value": 10}, {"arrows": "to", "from": "(4, 4)", "label": "0.1", "title": "0.0021371500000000004", "to": "(4, 5)", "value": 10}, {"arrows": "to", "from": "(0, 5)", "label": "0.1", "title": "1.0000000000000007e-09", "to": "(1, 5)", "value": 10}, {"arrows": "to", "from": "(1, 5)", "label": "0.1", "title": "1.8600000000000008e-07", "to": "(2, 5)", "value": 10}, {"arrows": "to", "from": "(2, 5)", "label": "0.1", "title": "1.2221000000000002e-05", "to": "(3, 5)", "value": 10}, {"arrows": "to", "from": "(3, 5)", "label": "0.1", "title": "0.0003665560000000001", "to": "(4, 5)", "value": 10}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "barnesHut": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.3,
+            "damping": 0.09,
+            "gravitationalConstant": -80000,
+            "springConstant": 0.001,
+            "springLength": 250
+        },
+        "enabled": true,
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>
