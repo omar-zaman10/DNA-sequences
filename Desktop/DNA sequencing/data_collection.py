@@ -13,10 +13,11 @@ start = time.time()
 
 
 
-n = 100 #Change n to 1000
-repeats = 100
+n = 1000 #Change n to 1000
+repeats = 5
+points = 11
 
-Ps_values = np.linspace(0,0.2,101)
+Ps_values = np.linspace(0,0.2,points)
 data_dict = {'Ps':[],'Pi':[],'Pd':[],"Average error":[],"SD":[]}
 
 counter = 1
@@ -33,8 +34,6 @@ def run():
         for _ in range(repeats):
 
 
-            
-            
 
             t,r = c.generate_input_output(n,Pi=Pi,Pd=Pd,Ps=Ps,bits=True)
             changes = c.changes
@@ -45,8 +44,6 @@ def run():
             i = 0
 
             results = []
-
-
 
 
             for change in changes:
@@ -64,9 +61,10 @@ def run():
 
                 i+=1
 
-
             count = results.count(False) *100.0/ len(results)
             percentage.append(count)
+            print(counter, round(counter *100.0/ (points*3*repeats),2),' percent')
+            counter +=1
 
         percentage = np.array(percentage)
         avg  = np.mean(percentage)
@@ -76,8 +74,8 @@ def run():
         data_dict["SD"].append(sd)
 
         print(avg,'Average')
-        print(counter, round(counter *100.0/ (101*3),2),' percent')
-        counter +=1
+        
+        
 
 
 
@@ -97,14 +95,9 @@ run()
 
 
 
-
-
-
-
-
 df = pd.DataFrame.from_dict(data_dict)
 
-df.to_csv('bigger_excel.csv')
+df.to_csv('n=1000_file.csv')
 
 end = time.time()
 print(f'Time taken for n = {n}, repeats = {repeats} {end-start}s')
