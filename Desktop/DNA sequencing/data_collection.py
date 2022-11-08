@@ -14,8 +14,8 @@ start = time.time()
 
 
 n = 1000 #Change n to 1000
-repeats = 5
-points = 11
+repeats = 25
+points = 10
 
 Ps_values = np.linspace(0,0.2,points)
 data_dict = {'Ps':[],'Pi':[],'Pd':[],"Average error":[],"SD":[]}
@@ -37,7 +37,6 @@ def run():
 
             t,r = c.generate_input_output(n,Pi=Pi,Pd=Pd,Ps=Ps,bits=True)
             changes = c.changes
-
             guesses = T.forward_backward(t,r,Pi=Pi,Pd=Pd,Ps=Ps)
 
 
@@ -75,8 +74,6 @@ def run():
 
         print(avg,'Average')
         
-        
-
 
 
 Pi = 0.008
@@ -97,7 +94,7 @@ run()
 
 df = pd.DataFrame.from_dict(data_dict)
 
-df.to_csv('n=1000_file.csv')
+df.to_csv('n=1000_r=25.csv')
 
 end = time.time()
 print(f'Time taken for n = {n}, repeats = {repeats} {end-start}s')
