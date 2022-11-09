@@ -179,11 +179,12 @@ class Trellis:
 
 if __name__ == '__main__':
     
-    transmitted = ['A','C','G','A']
+    transmitted = ['A','C','G','A','C']
     recieved = ['A','T','G','C','A']
 
     T = Trellis()
 
     print(T.forward_backward(transmitted,recieved))    
+    T.draw_trellis(transmitted,recieved,'testing.html')
 
 
