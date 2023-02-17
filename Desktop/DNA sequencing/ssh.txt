@@ -1,0 +1,14 @@
+#Comand for going on teaching system
+ssh ts 
+
+#Copy a file onto ts 
+scp 'filename' ts: 'pathname'
+
+e.g.
+scp README.md ts: 
+
+#To exit
+exit
+
+#To find workload on that machine
+top

@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('n=1000_r=25_dna.csv')
+df = pd.read_csv('data/n=1000_r=20_dna.csv')
 
 errors = df['Average error']
 stds = df['SD']

@@ -1,0 +1,18 @@
+The forward backward algorithm likelihood calculation is incorrect and needs further refinemeant
+Better way to explain the codewords and the likelihood is needed
+
+S1 set of trellis is wrong!! i?
+
+Ps is actually the channel substition because we should produce an output for all codewords 
+w + s for each codeword should go through the trellis to P(d)
+
+Make your own codeword using ldpc decoder etc
+
+
+
+
+Week 4 discussion
+- Talk about toor node for alpha values?
+- ssh scp copying from ts to local 
+- anaconda environment
+- Fixed length sequences?

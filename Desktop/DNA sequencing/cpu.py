@@ -3,7 +3,7 @@ import time
 
 start = time.time()
 
-def do():
+def do(index,return_dict):
     global r1
     output = []
     n = 1_000_000
@@ -12,8 +12,8 @@ def do():
         output.append(i**2)
 
     r1.append(output)
-    return 
-
+    #return 'hello world'
+    return_dict[index] = f'hello world {index}'
 
 def do1():
     global r2
@@ -24,7 +24,7 @@ def do1():
         output.append(i**2)
 
     r2.append(output)
-    return 
+    return 'hello'
 
 
 cores = multiprocessing.cpu_count()
@@ -34,13 +34,16 @@ r2 = []
 
 
 if __name__ == '__main__':
+    manager = multiprocessing.Manager()
+    return_dict = manager.dict()
+
     start = time.time()
 
     processes = []
 
     for i in range(cores):
         print('registering process %d' % i)
-        processes.append(multiprocessing.Process(target=do))
+        processes.append(multiprocessing.Process(target=do, args=(i,return_dict)))
 
 
     for process in processes:
@@ -51,7 +54,7 @@ if __name__ == '__main__':
     end = time.time()
     print(f'Time taken for multiprocessing was {end - start}s')
 
-
+    print(return_dict)
 
 
     start = time.time()
@@ -60,4 +63,4 @@ if __name__ == '__main__':
 
     end = time.time()
     print(f'Time taken was {end - start}s')
-    print(r1==r2)
+    print(len(r2[0]))

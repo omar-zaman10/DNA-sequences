@@ -55,7 +55,7 @@ def run():
                 elif change == 'transmit':
                     results.append(guesses[i][0] > 0.5)
 
-                elif change == 'transmit': 
+                elif change == 'transmit':  #'substitute'????
                     results.append(guesses[i][1] > 0.5)
 
                 i+=1

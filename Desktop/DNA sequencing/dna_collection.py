@@ -66,7 +66,7 @@ print(f'Time taken {time.time() - start}')
 
 '''
 
-n = 100 #Change n to 1000
+n = 1000 #Change n to 1000
 repeats = 25
 points = 10
 
@@ -147,7 +147,7 @@ run()
 
 df = pd.DataFrame.from_dict(data_dict)
 
-df.to_csv('n=1000_r=25_dna.csv')
+df.to_csv('n=1000_r=20_dna.csv')
 
 end = time.time()
 print(f'Time taken for n = {n}, repeats = {repeats} {end-start}s')

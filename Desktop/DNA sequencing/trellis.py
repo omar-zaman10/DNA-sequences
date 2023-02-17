@@ -8,14 +8,18 @@ class Trellis:
 
         self.nodes = [] # List of nodes as their str values, '(0,0)'
         self.tuples = {} #Converts from string node to tuple key = string : value = tuple
-        self.my_graph = {} # Node and its neighbouring nodes that it leads to  node --> neighbour
-        self.reverse_graph = {} # Node and its incoming nodes  node <-- neighbour
+        self.my_graph = {} # Node and its neighbouring nodes that it leads to  node --> [neighbour]
+        self.reverse_graph = {} # Node and its incoming nodes  node <-- [neighbour]
         self.edges = {} # Edge ( str node1, str node2 ) : Gamma value  , gamma is Pi,Pd,Ps
-        self.alphas = {} #Alphas for each node
-        self.betas = {} # Betas for each node
-        self.values = {} # Alpha Gamma Beta for each edge 
+        self.alphas = {} #Alphas for each node                 str node : alpha 
+        self.betas = {} # Betas for each node                  str node : beta
+        self.values = {} # Alpha Gamma Beta for each edge    ( str node1, str node2 ) : value
         self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
         self.transitions = {} # Normalises the probabilities  0,1,2,3.. : (p(transmission),p(subsititution)) normalises the probabilities
+
+
+    def reinitialise(self):
+        self.__init__()
 
     def forward_backward(self,transmitted,recieved,Pi=0.1,Pd=0.1,Ps=0.2):
         self.__init__()
@@ -109,13 +113,15 @@ class Trellis:
             node = self.tuples[node] #Converts to tuples
             neighbour = self.tuples[neighbour]
 
-
+            # Havent included deletions horizontal, only does transmissions/substitutions likelihoods
 
             if node[0]+1 == neighbour[0] and node[1]+1 == neighbour[1]:
                 if self.edges[edge] == Pt:
                     self.probabilities[node[0]][0].append(self.values[edge]) 
                 elif self.edges[edge] == Ps:
                     self.probabilities[node[0]][1].append(self.values[edge]) 
+
+            # if -- horizontal deletions
 
 
         for key,value in self.probabilities.items():

@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 
-df = pd.read_csv('n=1000_r=25.csv')
+df = pd.read_csv('data/n=1000_r=25.csv')
 
 errors = df['Average error']
 stds = df['SD']
@@ -27,15 +27,17 @@ x3 = substitions[2*size:3*size]
 y3 = np.array(y3)
 sd3 = np.array(stds[2*size:3*size])
 
+v_range = 0.2
+
 
 plt.plot(x1,y1,label = 'Pi = Pd = 0.008',color='b')
-plt.fill_between(x1,y1-0.1*sd1,y1+0.1*sd1,color='cornflowerblue')
+plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='cornflowerblue')
 
 plt.plot(x2,y2,label = 'Pi = Pd = 0.01',color='y')
-plt.fill_between(x1,y2-0.1*sd2,y2+0.1*sd2,color='khaki')
+plt.fill_between(x1,y2-v_range*sd2,y2+v_range*sd2,color='khaki')
 
 plt.plot(x3,y3,label = 'Pi = Pd = 0.02',color='r')
-plt.fill_between(x3,y3-0.1*sd3,y3+0.1*sd3,color='tomato')
+plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='tomato')
 
 
 plt.xlabel('Probability of substitution')
@@ -47,7 +49,7 @@ plt.legend()
 plt.show()
 
 
-df = pd.read_csv('bigger_excel.csv')
+df = pd.read_csv('data/bigger_excel.csv')
 
 errors = df['Average error']
 stds = df['SD']
