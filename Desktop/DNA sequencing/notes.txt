@@ -13,6 +13,17 @@ Make your own codeword using ldpc decoder etc
 
 Week 4 discussion
 - Talk about toor node for alpha values?
-- ssh scp copying from ts to local 
+- ssh scp copying from ts to local   locally type 'scp ts: remote_file .'
 - anaconda environment
-- Fixed length sequences?
+- Fixed length sequences no primers?
+
+
+Primers at the start and ending could be used for termination
+Once primers have reached then the substition probability is only channel substition
+
+
+
+Week 5 discussion
+- How do I log out of the remote access and let it execute then rejoin and see whats happening
+
+It should be watermark,received not transmitted,received

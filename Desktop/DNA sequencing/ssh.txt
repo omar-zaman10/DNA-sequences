@@ -4,6 +4,21 @@ ssh ts
 #Copy a file onto ts 
 scp 'filename' ts: 'pathname'
 
+e.g. 
+
+scp mytext.txt ts: 
+
+#Copies mytext.txt onto the ts with pathname just being onto ts no directiory e.g. /GF2/ etc
+
+#Copy a file from ts onto local
+From new terminal
+scp ts:pathname .
+
+e.g.
+
+scp ts:mytext.tx .
+
+
 e.g.
 scp README.md ts: 
 
@@ -12,3 +27,27 @@ exit
 
 #To find workload on that machine
 top
+
+
+
+
+#Conda environment
+
+
+#To activate an environment
+source activate my-env
+
+#To leave environment
+source deactivate
+
+#To install package
+conda install 'package'
+
+pandas
+matplotlib
+colorama
+
+
+#Export conda path 
+
+export PATH=/usr/local/apps/anaconda3-5.0.1/bin:$PATH

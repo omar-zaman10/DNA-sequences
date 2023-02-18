@@ -4,22 +4,33 @@ import numpy as np
 import sys
 from progress_bar import progress_bar
 import time
+from channel import channel
 
 transmitted = ['A','C','G','A','C']
 recieved = ['A','T','G','C','A']
 
 
+c = channel()
+
+transmitted,recieved  = c.generate_input_output(Pi=0.1,Pd=0.1,n=4,bits = False)
+
+print(f'transmitted {transmitted} , revceived {recieved}')
+print(f'changes {c.changes}')
+
 
 class Trellis3D:
 
 
-    def __init__(self) :
-        self.nodes = [] # List of nodes as their str values, '(0,0)'
+    def __init__(self,bits=False) :
+        self.nodes = [] # List of nodes as their str values, '(i,j,d)'
         self.tuples = {} #Converts from string node to tuple key = string : value = tuple
         self.my_graph = {} # Node and its neighbouring nodes that it leads to  node --> [neighbour]
         self.reverse_graph = {} # Node and its incoming nodes  node <-- [neighbour]
         self.edges = {} # Edge ( str node1, str node2 ) : Gamma value  , gamma is Pi,Pd,Ps
 
+
+        self.basis = ['A','C','T','G']
+        if bits: self.basis = ['1','0']
 
         self.toor = None
         self.toor_name = None
@@ -31,7 +42,10 @@ class Trellis3D:
 
         self.alphas = {} #Alphas for each node                 str node : alpha 
         self.betas = {} # Betas for each node                  str node : beta
+
         self.values = {} # Alpha Gamma Beta for each edge    ( str node1, str node2 ) : value
+        self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
+        self.likelihoods = {} #Index of each transmitted with normalised probabilities
         sys.setrecursionlimit(5_000)
         pass
 
@@ -204,8 +218,46 @@ class Trellis3D:
 
         print(f'Time taken for forward backwards algorithm {end-start} seconds with {len(transmitted)} symbols {len(transmitted)**2} squared')
 
+        self.output_likelihoods(transmitted,recieved)
 
+    def output_likelihoods(self,transmitted,recieved):
+
+        self.probabilities = {i:{symbol:0 for symbol in self.basis} for i in range(len(transmitted))}   
+        # 0,1,2,3...: {'A': A likelihood, 'C' : C likelihood, ...}
+
+        for edge in self.edges:
+            node = edge[0]
+            neighbour = edge[1]
+
+
+            self.values[edge] = self.alphas[node]*self.betas[neighbour]*self.edges[edge]
+
+            node = self.tuples[node] #Converts to tuples
+            neighbour = self.tuples[neighbour]
+
+            if node[2] == 0: distribution = self.PS
+            elif node[2] == 2: distribution = self.PD
+            elif node[2] == -2: distribution = self.PI
+
+
+            Pi,Pd,Ps = distribution
+            Pt = round(1 - Pi - Pd - Ps,1)
+
+            # Havent included deletions horizontal, only does transmissions/substitutions likelihoods
+            if node[0]+1 == neighbour[0] and node[1]+1 == neighbour[1]:
+                t = transmitted[node[0]]
+                r = recieved[node[1]]
+
+                self.probabilities[node[0]][r] += self.values[edge]
+        
+        for key,symbols_dict in self.probabilities.items():
+            s = sum(value for value in symbols_dict.values())
+
+            self.likelihoods[key] = {k:v/s for k,v in symbols_dict.items()}
+        
+        return self.probabilities
     
+
 
 
 
@@ -234,9 +286,11 @@ class Trellis3D:
 
 
 
-            alpha = self.betas[node]
+            alpha = self.alphas[node]
+            beta = self.betas[node]
 
             alpha = round(alpha,4)
+            beta = round(beta,4)
 
             # To draw the alpha values alpha, to replace with coordinates replace alpha with node
             ax.text(d, i, j+0.3,alpha, None)
@@ -259,13 +313,21 @@ class Trellis3D:
                     
                 ax.plot(y, x, z, c=colour, alpha=0.9)
 
-                value = self.edges[(node,neighbour)]
+                prob = self.edges[(node,neighbour)] #Transition probability
                 direction = (d1-d,i1-i,j1-j)
 
+                value = self.values[(node,neighbour)]
+                value = round(value,4)
+
+                # Labelling the edges with either the transition probabilities or alpha gamma beta 
                 #ax.text((3*d+d1)/4.0, (3*i+i1)/4.0, (3*j+j1)/4.0, value, direction)
 
 
+        for i,symbol in enumerate(transmitted):
+            ax.text(0, i+0.5, -0.5,symbol, None,fontweight = 'bold')
 
+        for j,symbol in enumerate(recieved):
+            ax.text(0, -0.5, j+0.5,symbol, None,fontweight = 'bold')
 
 
         plt.show()
@@ -278,12 +340,38 @@ class Trellis3D:
 Trellis = Trellis3D()
 
 
-
-print(sys.getrecursionlimit())
-
 Trellis.forward_backward(transmitted,recieved)
 
-#Trellis.draw_3D(transmitted,recieved)
+
+print(f'Trellis likelihoods {Trellis.likelihoods}')
+Trellis.draw_3D(transmitted,recieved)
 
 
+'''
+        self.values = {} #Edge pairs with alpha gamma beta products 
+
+        self.probabilities = {i:[[],[]] for i in range(len(transmitted))}   # 0,1,2,3...: [[values of transmission],[values of substitions]]
+
+
+
+        for edge in self.edges:
+            node = edge[0]
+            neighbour = edge[1]
+
+
+            self.values[edge] = self.alphas[node]*self.betas[neighbour]*self.edges[edge]
+
+            node = self.tuples[node] #Converts to tuples
+            neighbour = self.tuples[neighbour]
+
+            # Havent included deletions horizontal, only does transmissions/substitutions likelihoods
+
+            if node[0]+1 == neighbour[0] and node[1]+1 == neighbour[1]:
+                if self.edges[edge] == Pt:
+                    self.probabilities[node[0]][0].append(self.values[edge]) 
+                elif self.edges[edge] == Ps:
+                    self.probabilities[node[0]][1].append(self.values[edge]) 
+
+            # if -- horizontal deletions
+'''
 
