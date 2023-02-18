@@ -42,12 +42,62 @@ class channel:
             i+=1
         self.output = output
         return 
+    
+    def bigram_channel(self,sequence,PI = [0.5,0.1,0.1],PD = [0.1,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
+        probability_distribution = PS #Start off with Transmission Trellis
+        i,n = 0,len(sequence)
+        bases = ['A','C','G','T']
+        if bits: bases = ['0','1']
+        options = ['transmit','substitute','insert','delete']
+        output =[]
+        choice = None
+
+        while i <n:
+            Pi,Pd,Ps = probability_distribution
+            Pt = round(1 - Pi - Pd - Ps,1)
+            weights = [Pt,Ps,Pi,Pd]
+            #print(f'Probability distribution {choice} {probability_distribution}')
+
+            choice = random.choices(options,weights=weights)[0]
+            self.changes.append(choice)
+            
+
+            if choice == 'transmit':
+                output.append(sequence[i])
+                probability_distribution = PS
+            elif choice == 'substitute':
+                new_choice = bases[:]
+                new_choice.remove(sequence[i])
+                output.append(random.choice(new_choice))
+                probability_distribution = PS
+            elif choice == 'insert':
+                output.append(random.choice(bases))
+                i-=1
+                probability_distribution = PI
+            elif choice == 'delete':
+                probability_distribution = PD
+        
+            i+=1
+
+        self.output = output
+        return 
+
+
+
+        pass
 
     def generate_input_output(self,n=10,Pi =0,Pd =0,Ps = 0.2,bits=False):
         self.__init__()
         self.generate_sequence(n,bits)
         self.channel(self.input,Pi,Pd,Ps,bits)
         return self.input,self.output
+
+    def generate_bigram_input_output(self,n=10,PI = [0.7,0.1,0.1],PD = [0.1,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
+        self.__init__()
+        self.generate_sequence(n,bits)
+        self.bigram_channel(self.input,PI,PD ,PS ,bits)
+        return self.input,self.output
+
 
 
 '''Changes needed
@@ -59,7 +109,8 @@ class channel:
 if __name__ == '__main__':
     c = channel()
 
-    i,o = c.generate_input_output(Pi=0.1,Pd=0.1,n=4,bits = True)
-
-    print(i,o)
+    #i,o = c.generate_input_output(Pi=0.1,Pd=0.1,n=4,bits = True)
+    i,o = c.generate_bigram_input_output()
+    print(f'input {i}')
+    print(f'output {o}')
     print(c.changes)
