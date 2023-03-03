@@ -164,11 +164,48 @@ class Trellis3D:
 
             return self.alphas[node]
 
+        self.test_alphas = {}
+        self.test_alphas[str((0,0,0))] = 1
+
+        def forward_test():
+            stack = [self.toor_name]
+            order = [str((0,0,0))]
+
+            while stack:
+                node = stack[-1]
+                neighbours = self.reverse_graph[node]
+
+                mylist = [neighbour in self.test_alphas for neighbour in neighbours]
+                if all(mylist):
+                    f = 0
+                    for neighbour in neighbours:
+                        value = self.edges[(neighbour,node)] # neighbour --> node
+                        f += value*self.test_alphas[neighbour]
+                    self.test_alphas[node] = f
+                    stack.pop(-1)
+                    order.append(node)
+                
+                else:
+                    for neighbour in neighbours:
+                        if neighbour not in self.test_alphas: stack.append(neighbour)
+
+            return order
+
+        
 
         self.counter = 0
 
         forward(self.toor_name)
+        order = forward_test()
 
+        print('-'*162)
+
+        for node in self.alphas:
+            if self.alphas[node] != self.test_alphas[node]:
+                print(f'Node differences {node} {self.alphas[node]} and {self.test_alphas[node]}')
+
+        
+        print(order)
 
         self.betas[self.toor_name] = 1.0
         self.counter = 0
@@ -280,7 +317,7 @@ class Trellis3D:
             beta = round(beta,4)
 
             # To draw the alpha values alpha, to replace with coordinates replace alpha with node
-            ax.text(d, i, j+0.3,alpha, None)
+            ax.text(d, i, j+0.3,node, None)
 
             neighbours = self.my_graph[node]
             
@@ -336,7 +373,7 @@ if __name__ == '__main__':
     PD = [0.02,0.5,0.02]
     PS = [0.02,0.02,0.2]
 
-    transmitted,recieved  = c.generate_bigram_input_output(n=500,bits = False,PI=PI,PD=PD,PS=PS)
+    #transmitted,recieved  = c.generate_bigram_input_output(n=500,bits = False,PI=PI,PD=PD,PS=PS)
 
     #print(f'transmitted {transmitted} , revceived {recieved}')
     #print(f'changes {c.changes}')
@@ -347,9 +384,10 @@ if __name__ == '__main__':
 
 
     Trellis3d.forward_backward(transmitted,recieved,PI=PI,PD=PD,PS=PS)
+    Trellis3d.draw_3D(transmitted,recieved)
 
     print(f'Time taken {time.time()-start}s')
 
 
     #print(f'Trellis likelihoods {Trellis3d.likelihoods}')
-    #Trellis3d.draw_3D(transmitted,recieved)
+    
