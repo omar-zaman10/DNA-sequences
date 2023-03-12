@@ -136,6 +136,7 @@ class Trellis3D:
         total = len(transmitted)*(len(recieved)+1) + (len(transmitted)+1)*len(recieved) + len(transmitted)*len(recieved) +1
 
         def forward(node):
+            '''Forward algorithm using recursion'''
             self.counter +=1
             #progress_bar(self.counter,total)
 
@@ -144,7 +145,6 @@ class Trellis3D:
             if node in self.alphas: 
                 return self.alphas[node]
 
-            
 
             neighbours = self.reverse_graph[node]
             output = 0
@@ -167,6 +167,7 @@ class Trellis3D:
         self.test_alphas[str((0,0,0))] = 1
 
         def forward_test():
+            '''Forward algorithm using a stack instead of recursive stack'''
             stack = [self.toor_name]
             order = [str((0,0,0))]
 

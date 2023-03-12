@@ -5,8 +5,10 @@ class Sparsifier:
 
     def __init__(self):
         self.mapping = {} # maps k bit length sequnces to n sparse sequence quaternary vector
-        self.binary_sequences = []
+        self.binary_sequences = [] # All the binary sequences for the k bits specified
         self.reverse_mapping = {} #maps n sparse sequence quaternary vector to k bit length sequnces 
+        self.substitutions = {} #dictionary i: {0: denisty of 0 , etc }
+        
         pass
 
     def reinitialise(self):
@@ -81,28 +83,42 @@ class Sparsifier:
 
         return self.map(codeword,k)
 
-    def substitution_distribution(self):
+    def substitution_distribution(self,k,n):
         """Returns the probability distribution for the transmission/substitution 
         at each transmission index -- used to assign the substituion/transmission edge values"""
+
+        self.substitutions = {i:{'0':0, '1':0 , '2': 0 , '3':0} for i in range(n)}
+        total = 2**k
+
+        for sparse in self.mapping.values():
+
+            for i,symbol in enumerate(sparse):
+                self.substitutions[i][symbol]  += 1 /total
+
+    def decoder(self,k,n):
+        """Use the likelihoods from the sparse vector to compute loglikelihoods of the codeword bits"""
         pass
+
+        
 
 
 if __name__ == '__main__':
 
-    n = 10
-    k = 10
+    n = 5
+    k = 5
     S = Sparsifier()
 
     S.create_mapping(k,n)
-    #print(S.mapping)
+    print(S.mapping)
 
     print('-'*162)
 
-    m = np.random.randint(0,2,30) #This is the message
-    m = ''.join([str(b) for b in m])
-    print(m)
+    #m = np.random.randint(0,2,30) #This is the message
+    #m = ''.join([str(b) for b in m])
+    #print(m)
+    #sparse = S.map(m,k)
+    #print(len(sparse))
+    
+    S.substitution_distribution(k,n)
 
-    sparse = S.map(m,k)
-    print(len(sparse))
-
-
+    print(S.substitutions)

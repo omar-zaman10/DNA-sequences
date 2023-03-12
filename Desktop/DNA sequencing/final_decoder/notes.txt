@@ -1,0 +1,5 @@
+Probability of substitution different for each index based on sparsifier changes
+
+Use probability of sparse sequence with product rule to get codeword probabilities
+
+Sum codeword probabilities to get log likelihoods
