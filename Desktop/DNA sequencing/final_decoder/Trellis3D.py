@@ -38,11 +38,13 @@ class Trellis3D:
         self.values = {} # Alpha Gamma Beta for each edge    ( str node1, str node2 ) : value
         self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
         self.likelihoods = {} #Index of each transmitted with normalised probabilities
-        sys.setrecursionlimit(5_000)
+        #sys.setrecursionlimit(5_000)
         pass
 
 
     def forward_backward(self,transmitted,recieved,PI,PD,PS):
+
+        startup = time.time()
         
         #Initialise probability distributions
         self.PI = PI
@@ -67,7 +69,7 @@ class Trellis3D:
                     node = str((i,j,d))
                     self.nodes.append(node)
                     self.tuples[node] = (i,j,d)
-                            
+            
 
         self.toor = (len(transmitted)+2,len(recieved)+2,0)
         self.toor_name = str(self.toor)
@@ -79,6 +81,10 @@ class Trellis3D:
 
 
         probability_distribution = None
+
+
+        print(f'Time taken for initialising the nodes {time.time() - startup}s')
+        start = time.time()
 
         #Assigning all the neighbours and edges
         for node in self.my_graph:
@@ -135,6 +141,11 @@ class Trellis3D:
 
         total = len(transmitted)*(len(recieved)+1) + (len(transmitted)+1)*len(recieved) + len(transmitted)*len(recieved) +1
 
+        print(f'Time taken for initialising the edges {time.time() - start}s')
+        
+        
+
+
         def forward(node):
             '''Forward algorithm using recursion'''
             self.counter +=1
@@ -163,10 +174,8 @@ class Trellis3D:
 
             return self.alphas[node]
 
-        self.test_alphas = {}
-        self.test_alphas[str((0,0,0))] = 1
 
-        def forward_test():
+        def forward_stack():
             '''Forward algorithm using a stack instead of recursive stack'''
             stack = [self.toor_name]
             order = [str((0,0,0))]
@@ -175,44 +184,39 @@ class Trellis3D:
                 node = stack[-1]
                 neighbours = self.reverse_graph[node]
 
-                mylist = [neighbour in self.test_alphas for neighbour in neighbours]
+                mylist = [neighbour in self.alphas for neighbour in neighbours]
                 if all(mylist):
                     f = 0
                     for neighbour in neighbours:
                         value = self.edges[(neighbour,node)] # neighbour --> node
-                        f += value*self.test_alphas[neighbour]
-                    self.test_alphas[node] = f
+                        f += value*self.alphas[neighbour]
+                    self.alphas[node] = f
                     stack.pop(-1)
                     order.append(node)
                 
                 else:
                     for neighbour in neighbours:
-                        if neighbour not in self.test_alphas: stack.append(neighbour)
+                        if neighbour not in self.alphas: stack.append(neighbour)
 
             return order
 
-        
+        #start1 = time.time()
+        #forward(self.toor_name)
+        #print(f'Time taken for recursion {time.time() - start1}s')
 
-        self.counter = 0
 
-        forward(self.toor_name)
-        order = forward_test()
+        start2 = time.time()
+        order = forward_stack()
+        print(f'Time taken for forward stack {time.time() - start2}s')
 
-        print('-'*162)
-
-        for node in self.alphas:
-            if self.alphas[node] != self.test_alphas[node]:
-                print(f'Node differences {node} {self.alphas[node]} and {self.test_alphas[node]}')
-
-        
-        print(order)
+     
 
         self.betas[self.toor_name] = 1.0
         self.counter = 0
-
+        
+        
 
         def backward(node):
-   
 
             self.counter +=1
             #progress_bar(self.counter,total)
@@ -239,14 +243,47 @@ class Trellis3D:
 
             return self.betas[node]
 
-        starting = str((0,0,0))
-    
-        backward(starting)
 
-        end = time.time()
 
+        def backward_stack():
+            '''Forward algorithm using a stack instead of recursive stack'''
+            stack = [str((0,0,0))] 
+            reverse_order = [self.toor_name]
+
+            while stack:
+                node = stack[-1]
+                neighbours = self.my_graph[node]
+
+                mylist = [neighbour in self.betas for neighbour in neighbours]
+                if all(mylist):
+                    b = 0
+                    for neighbour in neighbours:
+                        value = self.edges[(node,neighbour)] # node --> neighbour
+                        b += value*self.betas[neighbour]
+                    self.betas[node] = b
+                    stack.pop(-1)
+                    reverse_order.append(node)
+                
+                else:
+                    for neighbour in neighbours:
+                        if neighbour not in self.betas: stack.append(neighbour)
+
+            return reverse_order
+
+
+        #starting = str((0,0,0))
+        #backward(starting)
+
+        start3 = time.time()
+        reverse_order = backward_stack()
+        print(f'Time taken for backwards stack {time.time() - start3}s')
+
+
+        start4 = time.time()
         #print(f'Time taken for forward backwards algorithm {end-start} seconds with {len(transmitted)} symbols {len(transmitted)**2} squared')
         self.output_likelihoods(transmitted,recieved)
+
+        print(f'time taken for likelihoods calculations {time.time() - start4}s with {len(self.edges)} number of edges and nodes {total}')
         return self.likelihoods
 
     def output_likelihoods(self,transmitted,recieved):
@@ -317,7 +354,7 @@ class Trellis3D:
             beta = round(beta,4)
 
             # To draw the alpha values alpha, to replace with coordinates replace alpha with node
-            ax.text(d, i, j+0.3,node, None)
+            ax.text(d, i, j+0.3,alpha, None)
 
             neighbours = self.my_graph[node]
             
@@ -369,11 +406,11 @@ if __name__ == '__main__':
     c = channel()
     start = time.time()
 
-    PI = [0.5,0.02,0.2]
-    PD = [0.02,0.5,0.02]
-    PS = [0.02,0.02,0.2]
+    PI = [0.5,0.2,0.2]
+    PD = [0.2,0.5,0.2]
+    PS = [0.2,0.2,0.2]
 
-    #transmitted,recieved  = c.generate_bigram_input_output(n=500,bits = False,PI=PI,PD=PD,PS=PS)
+    transmitted,recieved  = c.generate_bigram_input_output(n=1_000,bits = False,PI=PI,PD=PD,PS=PS)
 
     #print(f'transmitted {transmitted} , revceived {recieved}')
     #print(f'changes {c.changes}')
@@ -384,9 +421,10 @@ if __name__ == '__main__':
 
 
     Trellis3d.forward_backward(transmitted,recieved,PI=PI,PD=PD,PS=PS)
-    Trellis3d.draw_3D(transmitted,recieved)
-
     print(f'Time taken {time.time()-start}s')
+    #Trellis3d.draw_3D(transmitted,recieved)
+
+    
 
 
     #print(f'Trellis likelihoods {Trellis3d.likelihoods}')

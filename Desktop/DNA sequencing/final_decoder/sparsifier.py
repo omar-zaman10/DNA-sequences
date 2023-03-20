@@ -1,5 +1,7 @@
 import itertools
 import numpy as np
+
+
 class Sparsifier:
     """Sparsifier creates"""
 
@@ -7,7 +9,7 @@ class Sparsifier:
         self.mapping = {} # maps k bit length sequnces to n sparse sequence quaternary vector
         self.binary_sequences = [] # All the binary sequences for the k bits specified
         self.reverse_mapping = {} #maps n sparse sequence quaternary vector to k bit length sequnces 
-        self.substitutions = {} #dictionary i: {0: denisty of 0 , etc }
+        self.substitutions = {} #dictionary i: {0: denisty of 0 , etc } # Needed for Trellis transitions
         
         pass
 
@@ -95,8 +97,10 @@ class Sparsifier:
             for i,symbol in enumerate(sparse):
                 self.substitutions[i][symbol]  += 1 /total
 
-    def decoder(self,k,n):
+    def decoder(self,sparse_likelihoods,k,n):
         """Use the likelihoods from the sparse vector to compute loglikelihoods of the codeword bits"""
+
+        """Look at values - the sparse sequences and for each choice loop through and do a product rule using self.substitutions"""
         pass
 
         
