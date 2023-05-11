@@ -43,7 +43,7 @@ class channel:
         self.output = output
         return 
     
-    def bigram_channel(self,sequence,PI = [0.5,0.1,0.1],PD = [0.1,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
+    def bigram_channel(self,sequence,PI = [0.5,0.0,0.1],PD = [0.0,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
         probability_distribution = PS #Start off with Transmission Trellis
         i,n = 0,len(sequence)
         bases = ['A','C','G','T']
@@ -80,11 +80,10 @@ class channel:
             i+=1
 
         self.output = output
-        return 
+        return output
 
 
 
-        pass
 
     def generate_input_output(self,n=10,Pi =0,Pd =0,Ps = 0.2,bits=False):
         self.__init__()
@@ -92,7 +91,7 @@ class channel:
         self.channel(self.input,Pi,Pd,Ps,bits)
         return self.input,self.output
 
-    def generate_bigram_input_output(self,n=10,PI = [0.7,0.1,0.1],PD = [0.1,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
+    def generate_bigram_input_output(self,n=10,PI = [0.5,0.0,0.1],PD = [0.0,0.5,0.1],PS = [0.1,0.1,0.1],bits=False):
         self.__init__()
         self.generate_sequence(n,bits)
         self.bigram_channel(self.input,PI,PD ,PS ,bits)
@@ -108,6 +107,9 @@ class channel:
 
 if __name__ == '__main__':
     c = channel()
+
+    # [pi,pd,ps] 
+    # For PI: pd = 0, PD: pi = 0
 
     #i,o = c.generate_input_output(Pi=0.1,Pd=0.1,n=4,bits = True)
     i,o = c.generate_bigram_input_output()

@@ -9,7 +9,7 @@ Sum codeword probabilities to get log likelihoods
 #which watermark it was, however this does greatly reduce the rate.
 
 
-1. Create a new backwards stack algorithm
+1. Create a new backwards stack algorithm ✓
 2. Connect the sparsifier substitution distribution to the Trellis3D
 3. Channel should have only minor substitution changes -- Can choose different parameters for Insertion trellis etc
 4. Remove Insertion --> Deletion Trellis edges and vice versa?
@@ -17,4 +17,4 @@ Sum codeword probabilities to get log likelihoods
 6. Sparsifier decoder likelhoods for codewords
 7. Input codeword likelhoods into ldpc decoder to get ouput likelhoods and use thresholding to get results
 8. Iterative Trellis decoding?? Priori of output likelihoods for codeword converted to priori of sparse sequences 
-which is multiplied by 2. sparsifier substitution distribution and normalised
+which is multiplied by (2.) sparsifier substitution distribution and normalised

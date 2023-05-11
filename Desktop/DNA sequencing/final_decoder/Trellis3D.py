@@ -5,15 +5,13 @@ import sys
 from progress_bar import progress_bar
 import time
 from channel import channel
-from Trellis import Trellis
-import pandas as pd
-
+from sparsifier import Sparsifier
 
 
 class Trellis3D:
 
 
-    def __init__(self,bits=False) :
+    def __init__(self,sparse_distribution,bits=False) :
         self.nodes = [] # List of nodes as their str values, '(i,j,d)'
         self.tuples = {} #Converts from string node to tuple key = string : value = tuple
         self.my_graph = {} # Node and its neighbouring nodes that it leads to  node --> [neighbour]
@@ -35,11 +33,15 @@ class Trellis3D:
         self.alphas = {} #Alphas for each node                 str node : alpha 
         self.betas = {} # Betas for each node                  str node : beta
 
-        self.values = {} # Alpha Gamma Beta for each edge    ( str node1, str node2 ) : value
+        self.values = {} # Alpha * Gamma * Beta for each edge    ( str node1, str node2 ) : value
         self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
         self.likelihoods = {} #Index of each transmitted with normalised probabilities
         #sys.setrecursionlimit(5_000)
-        pass
+
+        self.q_mapping  = {0:'A', 1:'C', 2:'G', 3:'T'}
+        self.base_mapping = {'A':0, 'C':1, 'G':2, 'T':3}
+        self.sparse_distribution = sparse_distribution
+        
 
 
     def forward_backward(self,transmitted,recieved,PI,PD,PS):
@@ -81,10 +83,11 @@ class Trellis3D:
 
 
         probability_distribution = None
+        n = len(self.sparse_distribution)
 
-
-        print(f'Time taken for initialising the nodes {time.time() - startup}s')
+        #print(f'Time taken for initialising the nodes {time.time() - startup}s')
         start = time.time()
+
 
         #Assigning all the neighbours and edges
         for node in self.my_graph:
@@ -95,8 +98,10 @@ class Trellis3D:
             elif d == 2: probability_distribution = self.PD
 
             Pi,Pd,Ps = probability_distribution
+            #Ps is now affected by the sparse distrubution and similarly for Pt
 
-            Pt = round(1 - Pi - Pd - Ps,1)
+
+            normalisation = 1-Pi-Pd # Probability for transmission/substitution
 
             #Insertion
             if j+1 <= len(recieved):
@@ -118,11 +123,14 @@ class Trellis3D:
                 self.my_graph[node].append(neighbour)
                 self.reverse_graph[neighbour].append(node)
 
+                ti = self.base_mapping[transmitted[i]] 
+                ri = self.base_mapping[recieved[j]]
+                di = str((ri-ti)%4)
 
-                if transmitted[i] == recieved[j]:
-                    self.edges[(node,neighbour)] = Pt
-                else:
-                    self.edges[(node,neighbour)] = Ps
+                #Normalise these in accordance to transmissions
+                #Is normalisation necessary?
+
+                self.edges[(node,neighbour)] =  normalisation*self.sparse_distribution[i%n][di]
 
 
         for d in depth:
@@ -141,7 +149,7 @@ class Trellis3D:
 
         total = len(transmitted)*(len(recieved)+1) + (len(transmitted)+1)*len(recieved) + len(transmitted)*len(recieved) +1
 
-        print(f'Time taken for initialising the edges {time.time() - start}s')
+        #print(f'Time taken for initialising the edges {time.time() - start}s')
         
         
 
@@ -207,7 +215,7 @@ class Trellis3D:
 
         start2 = time.time()
         order = forward_stack()
-        print(f'Time taken for forward stack {time.time() - start2}s')
+        #print(f'Time taken for forward stack {time.time() - start2}s')
 
      
 
@@ -276,14 +284,14 @@ class Trellis3D:
 
         start3 = time.time()
         reverse_order = backward_stack()
-        print(f'Time taken for backwards stack {time.time() - start3}s')
+        #print(f'Time taken for backwards stack {time.time() - start3}s')
 
 
         start4 = time.time()
         #print(f'Time taken for forward backwards algorithm {end-start} seconds with {len(transmitted)} symbols {len(transmitted)**2} squared')
         self.output_likelihoods(transmitted,recieved)
 
-        print(f'time taken for likelihoods calculations {time.time() - start4}s with {len(self.edges)} number of edges and nodes {total}')
+        #print(f'time taken for likelihoods calculations {time.time() - start4}s with {len(self.edges)} number of edges and nodes {total}')
         return self.likelihoods
 
     def output_likelihoods(self,transmitted,recieved):
@@ -321,8 +329,6 @@ class Trellis3D:
             self.likelihoods[key] = {k:v/s for k,v in symbols_dict.items()}
         
         
-    
-
     def draw_3D(self,transmitted,recieved):
         #plt.rcParams["figure.figsize"] = [15.0, 15.0]
         plt.rcParams["figure.autolayout"] = True
@@ -354,7 +360,7 @@ class Trellis3D:
             beta = round(beta,4)
 
             # To draw the alpha values alpha, to replace with coordinates replace alpha with node
-            ax.text(d, i, j+0.3,alpha, None)
+            #ax.text(d, i, j+0.3,alpha, None)
 
             neighbours = self.my_graph[node]
             
@@ -381,7 +387,8 @@ class Trellis3D:
                 value = round(value,4)
 
                 # Labelling the edges with either the transition probabilities or alpha gamma beta 
-                #ax.text((3*d+d1)/4.0, (3*i+i1)/4.0, (3*j+j1)/4.0, value, direction)
+                if i1 == i+1 and j1 == j+1:
+                    ax.text((3*d+d1)/4.0, (3*i+i1)/4.0, (3*j+j1)/4.0, round(prob,4), direction)
 
 
         for i,symbol in enumerate(transmitted):
@@ -399,33 +406,64 @@ class Trellis3D:
 
 if __name__ == '__main__':
 
-    transmitted = ['A','C','G','A','C']
-    recieved = ['A','T','G','C','A']
+    codeword = np.random.randint(0,2,5)
+    codeword = ''.join([str(b) for b in codeword])
+
+
+    S = Sparsifier()
+    k,n = 5,5
+
+    sparse = S.sparsify(codeword,k,n)
+    sparse_distribution = S.substitution_distribution(k,n)
+    print(sparse_distribution)
+
+    watermark =  np.random.randint(0,4,len(sparse))
+
+
+    transmitted = (sparse + watermark) % 4
+    
+    print(sparse)
+
+    #print(sparse_distribution)
+
+    #transmitted = ['A','C','G','A','C']
+    #recieved = ['A','T','G','C','A']
+
+    bases_mapping = {0:'A', 1:'C', 2:'G', 3:'T'}
+    transmitted = [bases_mapping[q] for q  in transmitted]
+    watermark = [bases_mapping[q] for q  in watermark]
+    print(watermark)
+    print(transmitted)
 
 
     c = channel()
     start = time.time()
 
-    PI = [0.5,0.2,0.2]
-    PD = [0.2,0.5,0.2]
-    PS = [0.2,0.2,0.2]
+    PI = [0.5,0.0,0.02] # No probability of deletion
+    PD = [0.0,0.5,0.02] # No probability of insertion
+    PS = [0.2,0.1,0.02]
 
-    transmitted,recieved  = c.generate_bigram_input_output(n=1_000,bits = False,PI=PI,PD=PD,PS=PS)
+    #transmitted,recieved  = c.generate_bigram_input_output(n=5,bits = False,PI=PI,PD=PD,PS=PS)
 
     #print(f'transmitted {transmitted} , revceived {recieved}')
     #print(f'changes {c.changes}')
 
+    recieved = c.bigram_channel(transmitted,PI=PI,PD=PD,PS=PS)
+
+    print(recieved)
 
 
-    Trellis3d = Trellis3D()
+    Trellis3d = Trellis3D(sparse_distribution)
 
 
-    Trellis3d.forward_backward(transmitted,recieved,PI=PI,PD=PD,PS=PS)
+    Trellis3d.forward_backward(watermark,recieved,PI=PI,PD=PD,PS=PS)
     print(f'Time taken {time.time()-start}s')
-    #Trellis3d.draw_3D(transmitted,recieved)
+    print(f'Trellis likelihoods {Trellis3d.likelihoods}')
+
+    Trellis3d.draw_3D(watermark,recieved)
 
     
 
 
-    #print(f'Trellis likelihoods {Trellis3d.likelihoods}')
+    
     

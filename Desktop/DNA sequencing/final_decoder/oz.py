@@ -4,7 +4,7 @@ from Trellis3D import Trellis3D
 from channel import channel
 from sparsifier import Sparsifier
 import time
-
+from pprint import pprint
 
 
 
@@ -17,14 +17,44 @@ S = Sparsifier()
 
 x = c.encode(m) #Codeword
 codeword = ''.join([str(b) for b in x])
-k,n = 5,5
 
-print(len(codeword))
+
+print(codeword)
+k,n = 5,5
 
 sparse = S.sparsify(codeword,k,n)
 
-print(sparse)
-print(len(sparse))
+watermark =  np.random.randint(0,4,len(sparse))
+
+
+transmitted = (sparse + watermark) % 4
+
+
+
+bases_mapping = {0:'A', 1:'C', 2:'G', 3:'T'}
+transmitted = [bases_mapping[q] for q  in transmitted]
+
+
+C = channel()
+
+
+PI = [0.5,0,0.2]
+PD = [0.0,0.5,0.02]
+PS = [0.02,0.02,0.2]
+
+r = C.bigram_channel(transmitted,PI=PI,PD=PD,PS=PS)
+
+pprint(sparse)
+
+
+sparse_distribution = S.substitution_distribution(k,n)
+print(sparse_distribution)
+
+"""
+
+
+#transmitted,recieved  = c.generate_bigram_input_output(n=500,bits = False,PI=PI,PD=PD,PS=PS)
+
 
 #print(np.mod(np.matmul(x,np.transpose(c.pcmat())), 2))
 #y = 10*(0.5-x) #Input loglikelihoods
@@ -33,8 +63,7 @@ print(len(sparse))
 #print(f'y values {y}')
 #app,it = c.decode(y) #Output loglikelihoods
 
-
-
+"""
 
 
 '''

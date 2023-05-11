@@ -11,7 +11,6 @@ class Sparsifier:
         self.reverse_mapping = {} #maps n sparse sequence quaternary vector to k bit length sequnces 
         self.substitutions = {} #dictionary i: {0: denisty of 0 , etc } # Needed for Trellis transitions
         
-        pass
 
     def reinitialise(self):
         "Reinitialises the class to sparsify a different mapping"
@@ -83,7 +82,7 @@ class Sparsifier:
         """Creates the k --> n mapping and maps the codeword onto a sparse sequence"""
         self.create_mapping(k,n)
 
-        return self.map(codeword,k)
+        return np.array([int(q) for q in self.map(codeword,k)])
 
     def substitution_distribution(self,k,n):
         """Returns the probability distribution for the transmission/substitution 
@@ -96,6 +95,8 @@ class Sparsifier:
 
             for i,symbol in enumerate(sparse):
                 self.substitutions[i][symbol]  += 1 /total
+        
+        return self.substitutions
 
     def decoder(self,sparse_likelihoods,k,n):
         """Use the likelihoods from the sparse vector to compute loglikelihoods of the codeword bits"""
@@ -123,6 +124,5 @@ if __name__ == '__main__':
     #sparse = S.map(m,k)
     #print(len(sparse))
     
-    S.substitution_distribution(k,n)
-
-    print(S.substitutions)
+    substitutions = S.substitution_distribution(k,n)
+    print(substitutions)
