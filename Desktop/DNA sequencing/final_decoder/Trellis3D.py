@@ -34,8 +34,8 @@ class Trellis3D:
         self.betas = {} # Betas for each node                  str node : beta
 
         self.values = {} # Alpha * Gamma * Beta for each edge    ( str node1, str node2 ) : value
-        self.probabilities = {} # Index of transmitted calculates all the diagonal values to get the P(s) and P(t)
-        self.likelihoods = {} #Index of each transmitted with normalised probabilities
+        self.probabilities = {} # Index of watermark calculates all the diagonal values to get the P(s) and P(t)
+        self.likelihoods = {} #Index of each watermark with normalised probabilities
         #sys.setrecursionlimit(5_000)
 
         self.q_mapping  = {0:'A', 1:'C', 2:'G', 3:'T'}
@@ -44,7 +44,7 @@ class Trellis3D:
         
 
 
-    def forward_backward(self,transmitted,recieved,PI,PD,PS):
+    def forward_backward(self,watermark,recieved,PI,PD,PS):
 
         startup = time.time()
         
@@ -60,7 +60,7 @@ class Trellis3D:
 
         #Initialise all the nodes
         for j in range(len(recieved)+1):
-            for i in range(len(transmitted)+1):
+            for i in range(len(watermark)+1):
                 for d in depth:
                     if d == -2 and j == 0: continue
                     if d == 2 and i == 0: continue
@@ -73,7 +73,7 @@ class Trellis3D:
                     self.tuples[node] = (i,j,d)
             
 
-        self.toor = (len(transmitted)+2,len(recieved)+2,0)
+        self.toor = (len(watermark)+2,len(recieved)+2,0)
         self.toor_name = str(self.toor)
         self.nodes.append(self.toor_name)
         self.tuples[self.toor_name] = self.toor
@@ -111,19 +111,19 @@ class Trellis3D:
                 self.reverse_graph[neighbour].append(node)
 
             #Deletion
-            if i+1 <= len(transmitted):
+            if i+1 <= len(watermark):
                 neighbour = str((i+1,j,2))
                 self.my_graph[node].append(neighbour)
                 self.edges[(node,neighbour)] = Pd
                 self.reverse_graph[neighbour].append(node)
             
             #Transmission
-            if i+1 <= len(transmitted) and j+1 <= len(recieved):
+            if i+1 <= len(watermark) and j+1 <= len(recieved):
                 neighbour = str((i+1,j+1,0))
                 self.my_graph[node].append(neighbour)
                 self.reverse_graph[neighbour].append(node)
 
-                ti = self.base_mapping[transmitted[i]] 
+                ti = self.base_mapping[watermark[i]] 
                 ri = self.base_mapping[recieved[j]]
                 di = str((ri-ti)%4)
 
@@ -134,7 +134,7 @@ class Trellis3D:
 
 
         for d in depth:
-            node = str((len(transmitted),len(recieved),d))
+            node = str((len(watermark),len(recieved),d))
             self.my_graph[node].append(self.toor_name)
             self.reverse_graph[self.toor_name].append(node)
 
@@ -147,7 +147,7 @@ class Trellis3D:
 
         self.counter =0 
 
-        total = len(transmitted)*(len(recieved)+1) + (len(transmitted)+1)*len(recieved) + len(transmitted)*len(recieved) +1
+        total = len(watermark)*(len(recieved)+1) + (len(watermark)+1)*len(recieved) + len(watermark)*len(recieved) +1
 
         #print(f'Time taken for initialising the edges {time.time() - start}s')
         
@@ -288,15 +288,15 @@ class Trellis3D:
 
 
         start4 = time.time()
-        #print(f'Time taken for forward backwards algorithm {end-start} seconds with {len(transmitted)} symbols {len(transmitted)**2} squared')
-        self.output_likelihoods(transmitted,recieved)
+        #print(f'Time taken for forward backwards algorithm {end-start} seconds with {len(watermark)} symbols {len(watermark)**2} squared')
+        self.output_likelihoods(watermark,recieved)
 
         #print(f'time taken for likelihoods calculations {time.time() - start4}s with {len(self.edges)} number of edges and nodes {total}')
         return self.likelihoods
 
-    def output_likelihoods(self,transmitted,recieved):
+    def output_likelihoods(self,watermark,recieved):
 
-        self.probabilities = {i:{symbol:0 for symbol in self.basis} for i in range(len(transmitted))}   
+        self.probabilities = {i:{symbol:0 for symbol in self.basis} for i in range(len(watermark))}   
         # 0,1,2,3...: {'A': A likelihood, 'C' : C likelihood, ...}
 
         for edge in self.edges:
@@ -319,9 +319,23 @@ class Trellis3D:
 
             # Havent included deletions horizontal, only does transmissions/substitutions likelihoods
             if node[0]+1 == neighbour[0] and node[1]+1 == neighbour[1]:
-                t = transmitted[node[0]]
                 r = recieved[node[1]]
                 self.probabilities[node[0]][r] += self.values[edge]
+
+            # Deletions horizontal transitions
+
+            if node[0]+1 == neighbour[0] and node[1] == neighbour[1]:
+                w = watermark[node[0]]
+
+                for q in self.sparse_distribution[node[0]]:
+                    p = self.values[edge]*self.sparse_distribution[node[0]][q]
+
+
+                    t = (self.base_mapping[w] +int(q)) % 4
+
+                    self.probabilities[node[0]][self.q_mapping[t]] += p
+
+
         
         for key,symbols_dict in self.probabilities.items():
             s = sum(value for value in symbols_dict.values())
@@ -329,7 +343,7 @@ class Trellis3D:
             self.likelihoods[key] = {k:v/s for k,v in symbols_dict.items()}
         
         
-    def draw_3D(self,transmitted,recieved):
+    def draw_3D(self,watermark,recieved):
         #plt.rcParams["figure.figsize"] = [15.0, 15.0]
         plt.rcParams["figure.autolayout"] = True
         fig = plt.figure()
@@ -391,7 +405,7 @@ class Trellis3D:
                     ax.text((3*d+d1)/4.0, (3*i+i1)/4.0, (3*j+j1)/4.0, round(prob,4), direction)
 
 
-        for i,symbol in enumerate(transmitted):
+        for i,symbol in enumerate(watermark):
             ax.text(0, i+0.5, -0.5,symbol, None,fontweight = 'bold')
 
         for j,symbol in enumerate(recieved):
@@ -399,7 +413,6 @@ class Trellis3D:
 
 
         plt.show()
-        pass
 
 
 
@@ -441,7 +454,7 @@ if __name__ == '__main__':
 
     PI = [0.5,0.0,0.02] # No probability of deletion
     PD = [0.0,0.5,0.02] # No probability of insertion
-    PS = [0.2,0.1,0.02]
+    PS = [0.1,0.2,0.02]
 
     #transmitted,recieved  = c.generate_bigram_input_output(n=5,bits = False,PI=PI,PD=PD,PS=PS)
 
