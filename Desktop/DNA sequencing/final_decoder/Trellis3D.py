@@ -34,8 +34,8 @@ class Trellis3D:
         self.betas = {} # Betas for each node                  str node : beta
 
         self.values = {} # Alpha * Gamma * Beta for each edge    ( str node1, str node2 ) : value
-        self.probabilities = {} # Index of watermark calculates all the diagonal values to get the P(s) and P(t)
-        self.likelihoods = {} #Index of each watermark with normalised probabilities
+        self.probabilities = {} # Unnormalised probabilities for each transmitted index {0: {A:pA ... T:pT }, 1 :{} , .... }
+        self.likelihoods = {} #Index of each transmitted with normalised probabilities
         #sys.setrecursionlimit(5_000)
 
         self.q_mapping  = {0:'A', 1:'C', 2:'G', 3:'T'}
@@ -327,8 +327,8 @@ class Trellis3D:
             if node[0]+1 == neighbour[0] and node[1] == neighbour[1]:
                 w = watermark[node[0]]
 
-                for q in self.sparse_distribution[node[0]]:
-                    p = self.values[edge]*self.sparse_distribution[node[0]][q]
+                for q in self.sparse_distribution[node[0]%len(self.sparse_distribution)]:
+                    p = self.values[edge]*self.sparse_distribution[node[0]%len(self.sparse_distribution)][q]
 
 
                     t = (self.base_mapping[w] +int(q)) % 4
@@ -341,7 +341,7 @@ class Trellis3D:
             s = sum(value for value in symbols_dict.values())
 
             self.likelihoods[key] = {k:v/s for k,v in symbols_dict.items()}
-        
+
         
     def draw_3D(self,watermark,recieved):
         #plt.rcParams["figure.figsize"] = [15.0, 15.0]
@@ -424,7 +424,7 @@ if __name__ == '__main__':
 
 
     S = Sparsifier()
-    k,n = 5,5
+    k,n = 5,10
 
     sparse = S.sparsify(codeword,k,n)
     sparse_distribution = S.substitution_distribution(k,n)
@@ -454,7 +454,7 @@ if __name__ == '__main__':
 
     PI = [0.5,0.0,0.02] # No probability of deletion
     PD = [0.0,0.5,0.02] # No probability of insertion
-    PS = [0.1,0.2,0.02]
+    PS = [0.1,0.1,0.02]
 
     #transmitted,recieved  = c.generate_bigram_input_output(n=5,bits = False,PI=PI,PD=PD,PS=PS)
 
@@ -473,7 +473,7 @@ if __name__ == '__main__':
     print(f'Time taken {time.time()-start}s')
     print(f'Trellis likelihoods {Trellis3d.likelihoods}')
 
-    Trellis3d.draw_3D(watermark,recieved)
+    #Trellis3d.draw_3D(watermark,recieved)
 
     
 
