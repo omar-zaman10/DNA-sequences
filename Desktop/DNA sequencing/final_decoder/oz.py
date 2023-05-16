@@ -38,7 +38,7 @@ C = channel()
 
 
 PI = [0.5,0.0,0.02]
-PD = [0.0,0.5,0.02]
+PD = [0.0,0.25,0.02]
 PS = [0.02,0.02,0.02]
 
 recieved = C.bigram_channel(transmitted,PI=PI,PD=PD,PS=PS)
@@ -80,4 +80,5 @@ print(codeword_estimate)
 print(codeword == codeword_estimate)
 
 
-print([a for a in zip(codeword,codeword_estimate)])
+o = [a[0] == a[1] for a in zip(codeword,codeword_estimate)]
+print(o.count(True) *100.0/ len(o))
