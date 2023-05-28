@@ -401,9 +401,10 @@ class Trellis3D:
                 value = round(value,4)
 
                 # Labelling the edges with either the transition probabilities or alpha gamma beta 
+                '''
                 if i1 == i+1 and j1 == j+1:
                     ax.text((3*d+d1)/4.0, (3*i+i1)/4.0, (3*j+j1)/4.0, round(prob,4), direction)
-
+                '''
 
         for i,symbol in enumerate(watermark):
             ax.text(0, i+0.5, -0.5,symbol, None,fontweight = 'bold')
@@ -424,7 +425,7 @@ if __name__ == '__main__':
 
 
     S = Sparsifier()
-    k,n = 5,10
+    k,n = 5,5
 
     sparse = S.sparsify(codeword,k,n)
     sparse_distribution = S.substitution_distribution(k,n)
@@ -454,7 +455,7 @@ if __name__ == '__main__':
 
     PI = [0.5,0.0,0.02] # No probability of deletion
     PD = [0.0,0.5,0.02] # No probability of insertion
-    PS = [0.1,0.1,0.02]
+    PS = [0.1,0.1,0.1]
 
     #transmitted,recieved  = c.generate_bigram_input_output(n=5,bits = False,PI=PI,PD=PD,PS=PS)
 
@@ -473,7 +474,7 @@ if __name__ == '__main__':
     print(f'Time taken {time.time()-start}s')
     print(f'Trellis likelihoods {Trellis3d.likelihoods}')
 
-    #Trellis3d.draw_3D(watermark,recieved)
+    Trellis3d.draw_3D(watermark,recieved)
 
     
 

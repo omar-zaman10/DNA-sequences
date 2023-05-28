@@ -112,7 +112,7 @@ if __name__ == '__main__':
     # For PI: pd = 0, PD: pi = 0
 
     #i,o = c.generate_input_output(Pi=0.1,Pd=0.1,n=4,bits = True)
-    i,o = c.generate_bigram_input_output()
+    i,o = c.generate_bigram_input_output(n=10,PI = [0.5,0.0,0.1],PD = [0.0,0.5,0.1],PS = [0.2,0.2,0.1])
     print(f'input {i}')
     print(f'output {o}')
     print(c.changes)

@@ -13,8 +13,34 @@ Sum codeword probabilities to get log likelihoods
 2. Connect the sparsifier substitution distribution to the Trellis3D ✅
 3. Include effects of deletions ✅
 4. Remove Insertion --> Deletion Trellis edges and vice versa? ✅
-5. Create a Sparsifier decoder using product over each different sequence then sum over column of mappings
-6. Sparsifier decoder likelhoods for codewords
-7. Input codeword likelhoods into ldpc decoder to get ouput likelhoods and use thresholding to get results
+5. Create a Sparsifier decoder using product over each different sequence then sum over column of mappings ✅
+6. Sparsifier decoder likelhoods for codewords ✅
+7. Input codeword likelhoods into ldpc decoder to get ouput likelhoods and use thresholding to get results ✅
 8. Iterative Trellis decoding?? Priori of output likelihoods for codeword converted to priori of sparse sequences 
 which is multiplied by (2.) sparsifier substitution distribution and normalised
+
+
+Questions for Jossy:
+
+1. Is the sparse likelhoods, likelhoods or posteori since it uses the prior of the sparse distribution
+Should i call them priori for sparse distribution
+
+2. Data for both entire coding scheme errors and data for two type errors just in inner code
+Do hard output thresholds for watermark decoder 
+
+
+
+1. Discuss Log books?
+2. Discuss improvements to the symbol by symbol likelihoods
+
+
+Jossy has read through:
+3.1 LDPC CODES
+3.2 Sparsifier
+3.4 Watermark Decoder
+
+
+Final read:
+Remove \\ spaces
+Uncapitalise Trellis and Channel
+Add equations and numbering
