@@ -53,19 +53,25 @@ sd2 = np.array(m_stds2)
 
 
 
-v_range = 1
-
-plt.plot(x1,y1,label = 'R = 1/2',color='b')
-plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='cornflowerblue')
-
-plt.plot(x2,y2,label = 'R = 3/4',color='r')
-plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='tomato')
+v_range = 0.5
 
 
+y1 /= 100
+y2 /= 100
 
-plt.xlabel('Probability of Substitution')
-plt.ylabel('Overall Decoding Error probability %')
-plt.title('Decoding Errors for Probability of substitutions')
+v_range /= 100
+
+plt.plot(x1,y1,label = 'R = 1/2',color='r')
+plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='tomato')
+
+plt.plot(x2,y2,label = 'R = 3/4',color='g')
+plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='palegreen')
+
+
+
+plt.xlabel('Probability of Channel Substitution')
+plt.ylabel('Overall Error probability')
+plt.title('Errors for different channel substitution rates')
 
 plt.grid()
 plt.legend(loc = 'lower right')
@@ -87,6 +93,9 @@ def plot_t12_errors(t1_averages,length,t1_sd,t2_averages,t2_sd,R = '1/2'):
 
     v_range = 0.4
 
+    y1/= 100
+    y2/= 100
+    v_range /= 100
 
 
 
@@ -96,8 +105,8 @@ def plot_t12_errors(t1_averages,length,t1_sd,t2_averages,t2_sd,R = '1/2'):
     plt.plot(x2,y2,label = 'Type2 Error',color='y')
     plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='khaki')
 
-    plt.xlabel('Overall Rates')
-    plt.ylabel('Error percentage %')
+    plt.xlabel('Channel Substiution Rate')
+    plt.ylabel('Error probability')
     plt.title(f'Type1 and Type2 Errors for R = {R}')
 
 

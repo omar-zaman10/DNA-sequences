@@ -1,0 +1,34 @@
+October
+- Discussed and planned the scope of the project and what research will be conducted
+- Read papers by Kate Attfield and David Mckay on Watermark coding
+
+November
+- Started work on the channel model channel.py to include Unigram channel
+- Started work on Trellis class for the forward backward algorithm
+
+December
+- Finished Trellis class and explored other decoding schemes such as viterbi
+- Collected data by running simulations on only the inner code and plotted them
+- Created powerpoint presentation of current progress
+
+January
+- Worked on write up for TMR
+- Considered further tasks to continue the project
+
+February
+- Implemented the Bigram Model for the channel.py class
+- Built the 3D Trellis class with the forward backward algorithm
+
+March
+- Created the sparsifier module as part of the hierarchical coding scheme
+- Integrated the LDPC code module into the coding scheme
+
+April 
+- Started work on the Sparsifier decoder
+- Integrated the whole hierarchical coding scheme together
+
+May
+- Collected data using the departments servers by making investigation files
+- Made use of parallel programming to collect data and then plot it
+- Wrote the final report for the project
+- Wrote the Technical Abstract

@@ -16,7 +16,7 @@ scp ts:pathname .
 
 e.g.
 
-scp ts:mytext.tx .
+scp ts:mytext.tx . 
 
 
 e.g.
@@ -51,3 +51,10 @@ colorama
 #Export conda path 
 
 export PATH=/usr/local/apps/anaconda3-5.0.1/bin:$PATH
+
+First ssh into ts then
+ssh previous name
+e.g.
+ssh nandaka
+
+apm-gxu-utf

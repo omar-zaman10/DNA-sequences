@@ -145,7 +145,6 @@ class Trellis3D:
                 return self.alphas[node]
 
             
-            
 
             neighbours = self.reverse_graph[node]
             output = 0

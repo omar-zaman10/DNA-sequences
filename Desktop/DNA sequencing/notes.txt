@@ -26,4 +26,16 @@ Once primers have reached then the substition probability is only channel substi
 Week 5 discussion
 - How do I log out of the remote access and let it execute then rejoin and see whats happening
 
+- Deletion likelihoods???
+
 It should be watermark,received not transmitted,received
+transmitted should come from channel changes!!!!
+
+Remove insertion --> deletion transitions and vice versa
+
+
+Consider adding time estimate with progress bar
+
+Number of substitution find the percentage of their errors
+Propertion of incorrect substitution , as a prpoprtion of total substitution.
+

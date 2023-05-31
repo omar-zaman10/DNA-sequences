@@ -121,24 +121,17 @@ y4 /= 100
 
 
 
-v_range = 0.5
+v_range = 0.0
 
 v_range /= 100
 
-plt.plot(x1,y1,label = 'R = 1/2',color='r')
+plt.plot(x1,y1,label = 'R = 1/2 Insertions ',color='r')
 plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='tomato')
 
-plt.plot(x2,y2,label = 'R = 3/4',color='g')
+plt.plot(x2,y2,label = 'R = 3/4 Insertions',color='g')
 plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='palegreen')
 
 
-'''
-plt.plot(x3,y3,label = 'R = 3/4',color='r')
-plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='tomato')
-
-
-plt.plot(x4,y4,label = 'R = 5/6',color='g')
-plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='palegreen')
 '''
 
 plt.xlabel('Average Rate of Insertions')
@@ -149,19 +142,19 @@ plt.grid()
 plt.legend(loc = 'lower right')
 plt.show()
 
+'''
+
+plt.plot(x3,y3,label = 'R = 1/2 Deletions',color='b')
+plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='cornflowerblue')
 
 
-plt.plot(x3,y3,label = 'R = 1/2',color='r')
-plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='tomato')
+plt.plot(x4,y4,label = 'R = 3/4 Deletions',color='y')
+plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='khaki')
 
 
-plt.plot(x4,y4,label = 'R = 3/4',color='g')
-plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='palegreen')
-
-
-plt.xlabel('Average Rate of Deletions')
+plt.xlabel('Stationary Rate')
 plt.ylabel('Overall Error probability')
-plt.title('Overall Errors for varying average Deletion rate')
+plt.title('Overall Errors for varying average Deletion or Insertion rate')
 
 plt.grid()
 plt.legend(loc = 'lower right')
@@ -225,27 +218,33 @@ def plot_t2():
 
 
 
-    v_range = 0.05
+    v_range = 0.5
+
+    y1/= 100
+    y2/= 100
+    y3/= 100
+    y4/= 100
+    v_range/= 100
 
 
 
 
-    plt.plot(x1,y1,label = 'R = 1/2',color='b')
-    plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='cornflowerblue')
+    plt.plot(x1,y1,label = 'R = 1/2 Insertions',color='r')
+    plt.fill_between(x1,y1-v_range*sd1,y1+v_range*sd1,color='tomato')
 
-    plt.plot(x2,y2,label = 'R = 2/3',color='y')
-    plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='khaki')
+    plt.plot(x2,y2,label = 'R = 3/4 Insertions',color='g')
+    plt.fill_between(x2,y2-v_range*sd2,y2+v_range*sd2,color='palegreen')
 
-    plt.plot(x3,y3,label = 'R = 3/4',color='r')
-    plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='tomato')
+    plt.plot(x3,y3,label = 'R = 1/2 Deletions',color='b')
+    plt.fill_between(x3,y3-v_range*sd3,y3+v_range*sd3,color='cornflowerblue')
 
-    plt.plot(x4,y4,label = 'R = 5/6',color='g')
-    plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='lightgreen')
+    plt.plot(x4,y4,label = 'R = 3/4 Deletions',color='y')
+    plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='khaki')
 
 
-    plt.xlabel('Overall Rates')
-    plt.ylabel('Error percentage %')
-    plt.title(f'Type2 Errors for different ldpc code rates')
+    plt.xlabel('Stationary rate')
+    plt.ylabel('Error probability')
+    plt.title(f'Type2 Errors for varying average Deletion or Insertion rate')
 
 
     plt.grid()
@@ -300,16 +299,15 @@ def plot_t1():
     plt.legend(loc = 'upper left')
     plt.show()
 
-plot_t12_errors(t1_averages1,insertion_values,t1_sd1,t2_averages1,t2_sd1,R = '1/2')
+#plot_t12_errors(t1_averages1,insertion_values,t1_sd1,t2_averages1,t2_sd1,R = '1/2')
 
-plot_t12_errors(t1_averages2,insertion_values,t1_sd2,t2_averages2,t2_sd2,R = '3/4')
+#plot_t12_errors(t1_averages2,insertion_values,t1_sd2,t2_averages2,t2_sd2,R = '3/4')
 
+#plot_t12_errors(t1_averages3,deletion_values,t1_sd3,t2_averages3,t2_sd3,R = '1/2',C='Deletion')
 
-plot_t12_errors(t1_averages3,deletion_values,t1_sd3,t2_averages3,t2_sd3,R = '1/2',C='Deletion')
+#plot_t12_errors(t1_averages4,deletion_values,t1_sd4,t2_averages4,t2_sd4,R = '3/4',C='Deletion')
 
-plot_t12_errors(t1_averages4,deletion_values,t1_sd4,t2_averages4,t2_sd4,R = '3/4',C='Deletion')
-
-#plot_t2()
+plot_t2()
 #plot_t1()
 
 

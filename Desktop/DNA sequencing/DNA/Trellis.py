@@ -1,5 +1,4 @@
 from pyvis import network as net
-import networkx as nx
 
 
 class Trellis:

@@ -130,4 +130,4 @@ if __name__ == '__main__':
 
     end = time.time()
     print(f'Time taken {end-start}s for n = {n}, repeats = {cores}, points = {points}')
-    print(f'Time taken per trellis run {end-start/(total*cores)}')
+    print(f'Time taken per trellis run {(end-start)/(total*cores)}')

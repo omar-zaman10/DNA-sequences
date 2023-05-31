@@ -122,7 +122,7 @@ plt.fill_between(x4,y4-v_range*sd4,y4+v_range*sd4,color='palegreen')
 
 
 plt.xlabel('Codeword Length')
-plt.ylabel('Overall Error probability %')
+plt.ylabel('Overall Error probability')
 plt.title('Overall Errors for different LDPC code Rates')
 
 plt.grid()

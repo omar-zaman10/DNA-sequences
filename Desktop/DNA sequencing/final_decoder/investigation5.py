@@ -150,7 +150,6 @@ if __name__ == '__main__':
 
     for j,n in enumerate(n_points):   
 
-        k = n 
 
         print(k,n)
 
